@@ -1,3 +1,3 @@
-/Users/gabrielevianello/Documents/Algoritmi e Strutture Dati/Progetto/cmake-build-debug/CMakeFiles/Progetto.dir
-/Users/gabrielevianello/Documents/Algoritmi e Strutture Dati/Progetto/cmake-build-debug/CMakeFiles/edit_cache.dir
-/Users/gabrielevianello/Documents/Algoritmi e Strutture Dati/Progetto/cmake-build-debug/CMakeFiles/rebuild_cache.dir
+C:/Users/Utente/Desktop/Algoritmi e Strutture Dati/cmake-build-debug/CMakeFiles/Progetto.dir
+C:/Users/Utente/Desktop/Algoritmi e Strutture Dati/cmake-build-debug/CMakeFiles/edit_cache.dir
+C:/Users/Utente/Desktop/Algoritmi e Strutture Dati/cmake-build-debug/CMakeFiles/rebuild_cache.dir
