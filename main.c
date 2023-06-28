@@ -2,7 +2,12 @@
  * Progetto di algoritmi e strutture dati
  */
 #include <stdio.h>
-#include <malloc.h>
+#include <stdlib.h>
+
+typedef struct Auto{
+    int autonomia;
+    struct Auto* next;
+}Auto;
 
 /**
  * l'autostrada è rappresentata da una lista doppiamente concatenata di stazioni
@@ -10,13 +15,50 @@
 typedef struct Stazione{
     int distanza;
     int num_auto;
-    int** autonomie;         //puntatore alla prima cella del vettore delle autonomie (una per auto)
+    Auto h_a;         //puntatore alla prima cella del vettore delle autonomie (una per auto)
     struct Stazione* next;
     struct Stazione* prev;
 }Stazione;
 
 Stazione head;
 Stazione* last;
+
+/**
+ * Aggiunge un auto alla stazione indicata
+ */
+void aggiungiAuto(int dist, int autonomia){
+    Stazione* st=&head;
+    while(st->next->distanza<=dist){
+        if(st->distanza==dist)
+            st->h_a
+    }
+}
+
+void addAutoInOrder(Stazione* s, int a){
+    Auto* tmp = &s->h_a;
+    if(tmp==NULL){
+        Auto* new = malloc(sizeof(Auto));
+        new->autonomia=a;
+        new->next=NULL;
+        tmp = new;
+        printf("aggiunta auto| distanza: %d | autonomia: %d\n", s->distanza, tmp->autonomia);
+        return;
+    }
+    else{
+        while (tmp != NULL){
+            if(tmp->autonomia<=a){
+                Auto* new = malloc(sizeof(Auto));
+                new->autonomia=a;
+                new->next=tmp;
+
+
+                printf("aggiunta auto| distanza: %d | autonomia: %d\n", s->distanza, tmp->autonomia);
+                return;
+            }
+        }
+    }
+    printf("errore");
+}
 
 /**
  * funzione che aggiunge una stazione all'autostrada
