@@ -4,6 +4,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#define MAX_AUTO 512
+
+
 typedef struct Auto{
     int autonomia;
     struct Auto* next;
@@ -15,7 +18,7 @@ typedef struct Auto{
 typedef struct Stazione{
     int distanza;
     int num_auto;
-    Auto h_a;         //puntatore alla prima cella del vettore delle autonomie (una per auto)
+    Auto *head;         //puntatore alla prima cella del vettore delle autonomie (una per auto)
     struct Stazione* next;
     struct Stazione* prev;
 }Stazione;
@@ -23,42 +26,65 @@ typedef struct Stazione{
 Stazione head;
 Stazione* last;
 
+//prototipi
+void addAutoInOrder(Stazione *st, int a);
+
 /**
  * Aggiunge un auto alla stazione indicata
  */
 void aggiungiAuto(int dist, int autonomia){
     Stazione* st=&head;
-    while(st->next->distanza<=dist){
-        if(st->distanza==dist)
-            st->h_a
+    while(st->next->distanza<=dist && st->next != NULL){
+        if(st->distanza==dist) {
+            addAutoInOrder(st, autonomia);
+            return;
+        }
+        else st = st->next;
     }
 }
 
-void addAutoInOrder(Stazione* s, int a){
-    Auto* tmp = &s->h_a;
-    if(tmp==NULL){
-        Auto* new = malloc(sizeof(Auto));
-        new->autonomia=a;
-        new->next=NULL;
-        tmp = new;
-        printf("aggiunta auto| distanza: %d | autonomia: %d\n", s->distanza, tmp->autonomia);
+/**
+ * Funzione di inserimento che mantiene la lista ordinata per autonomia decrescente
+ * @param st stazione alla quale aggiungere l'auto
+ * @param a autonomia (int)
+ */
+void addAutoInOrder(Stazione* st, int a){
+    Auto* newAuto = malloc(sizeof(Auto));
+    newAuto->autonomia = a;
+
+    //head insertion
+    if (st->head == NULL || a > st->head->autonomia) {
+        newAuto->next = st->head;
+        st->head = newAuto;
+        printf("aggiunta");
         return;
-    }
-    else{
-        while (tmp != NULL){
-            if(tmp->autonomia<=a){
-                Auto* new = malloc(sizeof(Auto));
-                new->autonomia=a;
-                new->next=tmp;
-
-
-                printf("aggiunta auto| distanza: %d | autonomia: %d\n", s->distanza, tmp->autonomia);
+    } else {
+        //insertion
+        int i=0;
+        Auto* current = st->head;
+        while (current->next != NULL && a <= current->next->autonomia) {
+            if(i<MAX_AUTO) current = current->next;
+            else{
+                printf("non aggiunta");
                 return;
             }
+            i++;
         }
+        newAuto->next = current->next;
+        current->next = newAuto;
+        printf("aggiunta");
+        return;
     }
-    printf("errore");
 }
+
+/**
+ *
+ */
+void removeInOrder(){
+    //TODO: rimozione delle auto in ordine
+}
+
+
 
 /**
  * funzione che aggiunge una stazione all'autostrada
@@ -66,7 +92,7 @@ void addAutoInOrder(Stazione* s, int a){
  * @param n_a  numero di automobili presenti
  * @param v_a  puntatore al vettore delle automobili
  */
-void aggiungiStazione(int dist, int n_a, int** v_a){
+void aggiungiStazione(int dist, int n_a, char* autonomie){
     Stazione* st = malloc(sizeof(Stazione));
     st->distanza=dist;
     st->num_auto=n_a;
@@ -86,9 +112,6 @@ void headInit(){
     last = &head;
 }
 
-Stazione* previousStation(int dist){
-    //TODO ritorna la stazione prima della distanza data
-}
 
 int main() {
     printf("Hello, World!\n");
