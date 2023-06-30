@@ -64,8 +64,8 @@ int addAutoInOrder(Stazione* st, int a){
  * @param dist distanza della stazione cercata
  * @param autonomia dell'auto da inserire
  */
-void aggiungiAuto(Stazione* head, int dist, int autonomia){
-    Stazione* st = head;
+void aggiungiAuto(Stazione** head, int dist, int autonomia){
+    Stazione* st = *head;
     while(st->next->distanza<=dist && st->next != NULL){
         if(st->distanza==dist) {
             int x = addAutoInOrder(st, autonomia); //condiviso con funzione aggiungiStazione(...)
@@ -85,8 +85,8 @@ void aggiungiAuto(Stazione* head, int dist, int autonomia){
  * @param dist distanza della stazione cercata
  * @param a autonomia dell'auto da eliminare.
  */
-void rottamaAuto(Stazione* head, int dist, int a){
-    Stazione* st= head;
+void rottamaAuto(Stazione** head, int dist, int a){
+    Stazione* st= *head;
     while(st->next->distanza<=dist && st->next != NULL){
         if(st->distanza==dist) {
             Auto* tmp = st->head;
@@ -98,7 +98,8 @@ void rottamaAuto(Stazione* head, int dist, int a){
                 tmp = tmp->next;
             }
 
-            if (tmp != NULL) {                //se è stata trovata:
+            //se è stata trovata:
+            if (tmp != NULL) {
                 if (prev == NULL)st->head = tmp->next;
                 else prev->next = tmp->next;
                 free(tmp);
@@ -123,47 +124,52 @@ void rottamaAuto(Stazione* head, int dist, int a){
  * @param n_a  numero di automobili presenti
  * @param v_a  puntatore al vettore delle automobili
  */
-Stazione* aggiungiStazione(Stazione* head, int dist, int n_a, int* a){
+void aggiungiStazione(Stazione** head, int dist, int n_a, int* a) {
     Stazione* st = malloc(sizeof(Stazione));
     st->distanza = dist;
-    st->num_auto=n_a;
-    for(int i = 0; i < n_a; i++) addAutoInOrder(st, a[i]);
+    st->num_auto = n_a;
     st->prev = NULL;
     st->next = NULL;
 
-    if (head == NULL) {
-        //La lista è vuota -> st diventa la testa
-        head = st;
-        printf("aggiunta");
-        return head;
-    } else if (dist < head->distanza) {
-        //Inserimento in testa alla lista
-        st->next = head;
-        head->prev = st;
-        head = st;
-        printf("aggiunta");
-        return head;
-    } else if(dist == head->distanza){
-        printf("non aggiunta");
-        return NULL;
+    //Creazione e inserimento delle auto nella lista ordinata per autonomie decrescenti
+    for (int i = 0; i < n_a; i++) addAutoInOrder(st, a[i]);
+
+    if (*head == NULL) {
+        //se lista vuota -> st diventa la testa
+        *head = st;
+        printf("aggiunta\n");
+        return;
+    } else if (dist < (*head)->distanza) {
+        // Inserimento in testa alla lista
+        st->next = *head;
+        (*head)->prev = st;
+        *head = st;
+        printf("aggiunta\n");
+        return;
+    } else if (dist == (*head)->distanza) {
+        printf("non aggiunta\n");
+        return;
     } else {
-        //Inserimento nel mezzo o in coda
-        Stazione* tmp = head;
+        // Inserimento nel mezzo o in coda
+        Stazione* tmp = *head;
         while (tmp->next != NULL && dist > tmp->next->distanza) {
-            if(tmp->next->distanza==dist){
-                printf("non aggiunta");
-                return NULL;
+            if (tmp->next->distanza == dist) {
+                printf("non aggiunta\n");
+                return;
             }
             tmp = tmp->next;
         }
         st->next = tmp->next;
         st->prev = tmp;
-        if (tmp->next != NULL) tmp->next->prev = st;
+        if (tmp->next != NULL) {
+            tmp->next->prev = st;
+        }
         tmp->next = st;
-        printf("aggiunta");
-        return NULL;
+        printf("aggiunta\n");
+        return;
     }
 }
+
 
 
 /**
@@ -172,18 +178,18 @@ Stazione* aggiungiStazione(Stazione* head, int dist, int n_a, int* a){
  * @param dist della stazione da eliminare
  * @return la testa della lista se modificata, altrimenti NULL;
  */
-Stazione* demolisciStazione(Stazione* head, int dist){
-    Stazione* st = head;
+void demolisciStazione(Stazione** head, int dist){
+    Stazione* st = *head;
     while(st->next->distanza<=dist && st->next != NULL){
         if(st->distanza==dist) {
             if (head == NULL || st == NULL) {
                 // La lista è vuota o la stazione da eliminare è nulla
                 printf("non demolita");
-                return NULL;
+                return;
             }
 
             //Se la stazione da eliminare è la testa della lista
-            if (head == st) head = st->next;
+            if (*head == st) *head = st->next;
 
             //Collega il nodo precedente al nodo successivo
             if (st->prev != NULL) st->prev->next = st->next;
@@ -194,18 +200,17 @@ Stazione* demolisciStazione(Stazione* head, int dist){
             //Dealloca la memoria della stazione eliminata
             free(st);
             printf("demolita");
-            return head;
+            return;
         }
         else st = st->next;
     }
     printf("non demolita");
-    return NULL;
 }
 
 
 //TODO: algoritmo di pianificazione del percorso
-void pianificaPercorso(){
-    //TODO: implementazione
+void pianificaPercorso(int d_start, int d_end){
+    //TODO prendo sempre la prima auto e uso valutazione della distanza progressiva :)
 }
 
 int main() {
