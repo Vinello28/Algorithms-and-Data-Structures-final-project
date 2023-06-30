@@ -208,10 +208,53 @@ void demolisciStazione(Stazione** head, int dist){
 }
 
 
-//TODO: algoritmo di pianificazione del percorso
-void pianificaPercorso(int d_start, int d_end){
+/**
+ * Funzione che data una distanza individua una stazione
+ * @param head testa della lista delle stazioni
+ * @param dist che identifica univocamente la stazione
+ * @return stazione cercata
+ */
+Stazione* cercaStazione(Stazione** head, int dist){
+    Stazione* st = *head;
+    while(st->next->distanza<=dist && st->next != NULL){
+        if(st->distanza==dist) return st;
+        st = st->next;
+    }
+    return *head; //da rivedere poiche non arriverà a questo punto.
+}
+
+Stazione* calcolaTappe(Stazione* st, int d2){
+    Stazione* head_path = malloc(sizeof(Stazione));
+    (if st)
+    //TODO (IMPLEMENTAZIONE) prendo sempre la prima auto e uso valutazione della distanza progressiva :)
+
+    return head_path;
+}
+
+/**
+ * Principale funzione del programma, si occupa di cercare il percorso con meno tappe tra due stazioni date,
+ * si assume che queste siano sempre presenti
+ * @param head testa della lista delle stazioni
+ * @param d_start distanza stazione di partenza
+ * @param d_end distanza stazione arrivo
+ */
+void pianificaPercorso(Stazione** head, int d_start, int d_end){
+    Stazione* st = cercaStazione(head, d_start);
+
+    if((d_start-d_end) == 0){
+        printf("%d", d_start);
+        return;
+    }
+    if(st->head->autonomia >= range){  //se auto ad autonomia maggiore riesce ad arrivare a destinazione
+        printf ("%d %d\n", d_start, d_end); //allora sarà sufficient stampare partenza e destinazione
+        return;
+    }
+    //algoritmo per scorrere stazioni
+    //vedere se si può fare indipendente da verso(come implementazione)
     //TODO prendo sempre la prima auto e uso valutazione della distanza progressiva :)
 }
+
+
 
 int main() {
     printf("Hello, World!\n");
