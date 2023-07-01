@@ -25,6 +25,10 @@ typedef struct Stazione{
     struct Stazione* prev;
 }Stazione;
 
+typedef struct Percorso{
+    Stazione x;
+    struct Percorso* next;
+}Percorso;
 
 /**
  * Funzione di inserimento che mantiene la lista ordinata per autonomia decrescente
@@ -57,6 +61,21 @@ int addAutoInOrder(Stazione* st, int a){
     }
 }
 
+
+void deallocaStazioni(Stazione* head) {//TODO da usare per deallocare l'autostrada.
+    Stazione* attuale = head;
+    Stazione* tmp;
+
+    while ( != NULL) {
+        temp = current->next;
+        free(current);
+        current = temp;
+    }
+
+    head = NULL;
+}
+
+
 /**
  * Funzione che aggiunge un auto scorrendo le stazioni fino a cercare (se esiste) quella desiderata,
  * poi la passa a metodo che si preoccupa di inserire l'auto mantenendo l'ordinamento decrescente
@@ -78,6 +97,21 @@ void aggiungiAuto(Stazione** head, int dist, int autonomia){
 }
 
 
+/**
+ * Funzione che si occupa di aggiungere una stazione al percorso in esame
+ * @param head testa della lista passata da cercaPercorso
+ * @param st stazione da aggiungere
+ */
+void aggiungiTappa(Percorso **head, Stazione* st){
+    Percorso* p = *head;
+    while(p->next != NULL){
+        p=p->next;
+    }
+    Percorso* tmp = malloc(sizeof(Percorso));
+    tmp->x = *st;
+    tmp->next=NULL;
+    p->next=tmp;
+}
 
 /**
  * Funzione che elimina un auto dalla lista di una precisa stazione
@@ -223,14 +257,6 @@ Stazione* cercaStazione(Stazione** head, int dist){
     return *head; //da rivedere poiche non arriverà a questo punto.
 }
 
-Stazione* calcolaTappe(Stazione* st, int d2){
-    Stazione* head_path = malloc(sizeof(Stazione));
-    (if st)
-    //TODO (IMPLEMENTAZIONE) prendo sempre la prima auto e uso valutazione della distanza progressiva :)
-
-    return head_path;
-}
-
 /**
  * Principale funzione del programma, si occupa di cercare il percorso con meno tappe tra due stazioni date,
  * si assume che queste siano sempre presenti
@@ -240,15 +266,76 @@ Stazione* calcolaTappe(Stazione* st, int d2){
  */
 void pianificaPercorso(Stazione** head, int d_start, int d_end){
     Stazione* st = cercaStazione(head, d_start);
+    Percorso* p = malloc(sizeof(Percorso));
 
-    if((d_start-d_end) == 0){
+    if(d_start == d_end){
         printf("%d", d_start);
         return;
     }
-    if(st->head->autonomia >= range){  //se auto ad autonomia maggiore riesce ad arrivare a destinazione
-        printf ("%d %d\n", d_start, d_end); //allora sarà sufficient stampare partenza e destinazione
-        return;
+    if(d_start<d_end){
+        int d = d_end-d_start;
+        int a = st->head->autonomia;
+        if (a >= d){
+            printf("%d %d", d_start, d_end);
+            return;
+        }
+
+        p->x = *st;
+        p->next = NULL;
+
+        while (st->next != NULL){
+            if((a >= (st->next->distanza - st->distanza))){
+                if(st->next->head->autonomia >= d){
+                    aggiungiTappa(&p, st->next);
+                    aggiungiTappa(&p, cercaStazione(head,d_end));
+                    break;
+                }
+                if((a - ((st->next->distanza - st->distanza))) < st->next->head->autonomia){
+                    a=st->next->head->autonomia;
+                    aggiungiTappa(&p, st->next);
+                }else a = a - ((st->next->distanza - st->distanza));
+                d = d-st->next->distanza;
+                st=st->next;
+            }
+            else{
+                printf("nessun percorso");
+            }
+        }
+
     }
+    if(d_start>d_end){
+        int d = d_start - d_end;
+        int a = st->head->autonomia;
+        if (a >= d){
+            printf("%d %d", d_start, d_end);
+            return;
+        }
+
+        p->x = *st;
+        p->next = NULL;
+
+        while (st->prev != NULL){
+            if((a >= (st->distanza - st->prev->distanza))){
+                if(st->prev->head->autonomia >= d){
+                    aggiungiTappa(&p, st->prev);
+                    aggiungiTappa(&p, cercaStazione(head,d_end));
+                    break;
+                }
+                if((a - (st->distanza - st->prev->distanza)) < st->prev->head->autonomia){
+                    a=st->prev->head->autonomia;
+                    aggiungiTappa(&p, st->next);
+                }else a = a - (st->distanza - st->prev->distanza);
+                d = d-st->prev->distanza;
+                st=st->prev;
+            }
+            else{
+                printf("nessun percorso");
+            }
+        }
+      //TODO stampa percorsi e deallocazioni varie
+
+    }
+
     //algoritmo per scorrere stazioni
     //vedere se si può fare indipendente da verso(come implementazione)
     //TODO prendo sempre la prima auto e uso valutazione della distanza progressiva :)
