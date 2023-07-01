@@ -268,11 +268,11 @@ void pianificaPercorso(Stazione** head, int d_start, int d_end){
     Stazione* st = cercaStazione(head, d_start);
     Percorso* p = malloc(sizeof(Percorso));
 
-    if(d_start == d_end){
+    if(d_start == d_end){               //stazioni coincidenti
         printf("%d", d_start);
         return;
     }
-    if(d_start<d_end){
+    if(d_start<d_end){                  //ricerca in avanti
         int d = d_end-d_start;
         int a = st->head->autonomia;
         if (a >= d){
@@ -294,16 +294,17 @@ void pianificaPercorso(Stazione** head, int d_start, int d_end){
                     a=st->next->head->autonomia;
                     aggiungiTappa(&p, st->next);
                 }else a = a - ((st->next->distanza - st->distanza));
+                //decrementa la distanza attuale
                 d = d-st->next->distanza;
+                //passa al prossimo elemento della lista
                 st=st->next;
             }
             else{
                 printf("nessun percorso");
             }
         }
-
     }
-    if(d_start>d_end){
+    if(d_start>d_end){                  //ricerca all'indietro
         int d = d_start - d_end;
         int a = st->head->autonomia;
         if (a >= d){
@@ -323,9 +324,11 @@ void pianificaPercorso(Stazione** head, int d_start, int d_end){
                 }
                 if((a - (st->distanza - st->prev->distanza)) < st->prev->head->autonomia){
                     a=st->prev->head->autonomia;
-                    aggiungiTappa(&p, st->next);
+                    aggiungiTappa(&p, st->prev);
                 }else a = a - (st->distanza - st->prev->distanza);
+                //decrementa la distanza attuale
                 d = d-st->prev->distanza;
+                //passa ad elemento precedente della lista
                 st=st->prev;
             }
             else{
@@ -333,12 +336,10 @@ void pianificaPercorso(Stazione** head, int d_start, int d_end){
             }
         }
       //TODO stampa percorsi e deallocazioni varie
-
     }
 
-    //algoritmo per scorrere stazioni
-    //vedere se si può fare indipendente da verso(come implementazione)
-    //TODO prendo sempre la prima auto e uso valutazione della distanza progressiva :)
+
+    //TODO printf percorsi
 }
 
 
