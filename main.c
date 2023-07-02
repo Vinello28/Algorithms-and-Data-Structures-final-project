@@ -3,6 +3,7 @@
  */
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #define MAX_AUTO 512
 
@@ -128,8 +129,13 @@ void aggiungiAuto(Stazione** head, int dist, int autonomia){
     while(st->next->distanza<=dist && st->next != NULL){
         if(st->distanza==dist) {
             int x = aggiungiAutoByDesc(st, autonomia); //condiviso con funzione aggiungiStazione(...)
-            if(x==1)printf("aggiunta\n");
-            else printf("non aggiunta\n");
+            if (x == 1) {
+                int sentinel = printf("aggiunta\n");
+                if(sentinel < 0) return;
+            } else {
+                int sentinel = printf("non aggiunta\n");
+                if(sentinel < 0) return;
+            }
             return;
         }
         else st = st->next;
@@ -177,18 +183,19 @@ void rottamaAuto(Stazione** head, int dist, int a){
                 if (prev == NULL)st->head = tmp->next;
                 else prev->next = tmp->next;
                 free(tmp);
-                printf("rottamata");
+                int sentinel = printf("rottamata");
+                if(sentinel < 0) return;
                 return;
             }
             else{
-                printf("non rottamata");
+                int sentinel = printf("non rottamata");
+                if(sentinel < 0) return;
                 return;
             }
         }
         else st = st->next;
     }
 }
-
 
 
 /**
@@ -211,39 +218,42 @@ void aggiungiStazione(Stazione** head, int dist, int n_a, int* a) {
     if (*head == NULL) {
         //se lista vuota -> st diventa la testa
         *head = st;
-        printf("aggiunta\n");
+        int sentinel = printf("aggiunta\n");
+        if(sentinel <0) return;
         return;
     } else if (dist < (*head)->distanza) {
         // Inserimento in testa alla lista
         st->next = *head;
         (*head)->prev = st;
         *head = st;
-        printf("aggiunta\n");
+        int sentinel = printf("aggiunta\n");
+        if(sentinel <0) return;
         return;
     } else if (dist == (*head)->distanza) {
-        printf("non aggiunta\n");
+        int sentinel = printf("non aggiunta\n");
+        if(sentinel <0) return;
         return;
     } else {
         // Inserimento nel mezzo o in coda
         Stazione* tmp = *head;
         while (tmp->next != NULL && dist > tmp->next->distanza) {
             if (tmp->next->distanza == dist) {
-                printf("non aggiunta\n");
+                int sentinel = printf("non aggiunta\n");
+                if(sentinel <0) return;
                 return;
             }
             tmp = tmp->next;
         }
         st->next = tmp->next;
         st->prev = tmp;
-        if (tmp->next != NULL) {
-            tmp->next->prev = st;
-        }
+        if (tmp->next != NULL) tmp->next->prev = st;
         tmp->next = st;
-        printf("aggiunta\n");
+
+        int sentinel = printf("aggiunta\n");
+        if(sentinel <0) return;
         return;
     }
 }
-
 
 
 /**
@@ -258,7 +268,8 @@ void demolisciStazione(Stazione** head, int dist){
         if(st->distanza==dist) {
             if (head == NULL || st == NULL) {
                 // La lista è vuota o la stazione da eliminare è nulla
-                printf("non demolita");
+                int sentinel = printf("non demolita");
+                if(sentinel <0) return;
                 return;
             }
 
@@ -273,12 +284,14 @@ void demolisciStazione(Stazione** head, int dist){
 
             //Dealloca la memoria della stazione eliminata
             free(st);
-            printf("demolita");
+            int sentinel = printf("demolita");
+            if(sentinel <0) return;
             return;
         }
         else st = st->next;
     }
-    printf("non demolita");
+    int sentinel = printf("non demolita");
+    if(sentinel <0) return;
 }
 
 
@@ -309,14 +322,16 @@ void pianificaPercorso(Stazione** head, int d_start, int d_end){
     Percorso* p = malloc(sizeof(Percorso));
 
     if(d_start == d_end){               //stazioni coincidenti
-        printf("%d", d_start);
+        int sentinel = printf("%d", d_start);
+        if(sentinel <0) return;
         return;
     }
     if(d_start<d_end){                  //ricerca in avanti
         int d = d_end-d_start;
         int a = st->head->autonomia;
         if (a >= d){
-            printf("%d %d", d_start, d_end);
+            int sentinel = printf("%d %d", d_start, d_end);
+            if(sentinel <0) return;
             return;
         }
 
@@ -340,7 +355,8 @@ void pianificaPercorso(Stazione** head, int d_start, int d_end){
                 st=st->next;
             }
             else {
-                printf("nessun percorso");
+                int sentinel = printf("nessun percorso");
+                if(sentinel <0) return;
                 return;
             }
         }
@@ -349,7 +365,8 @@ void pianificaPercorso(Stazione** head, int d_start, int d_end){
         int d = d_start - d_end;
         int a = st->head->autonomia;
         if (a >= d){
-            printf("%d %d", d_start, d_end);
+            int sentinel = printf("%d %d", d_start, d_end);
+            if(sentinel <0) return;
             return;
         }
 
@@ -373,14 +390,16 @@ void pianificaPercorso(Stazione** head, int d_start, int d_end){
                 st=st->prev;
             }
             else {
-                printf("nessun percorso");
+                int sentinel = printf("nessun percorso");
+                if(sentinel <0) return;
                 return;
             }
         }
     }
-
+    int sentinel;
     while (p != NULL){
-        printf("%d ",p->x.distanza);
+        sentinel = printf("%d ",p->x.distanza);
+        if(sentinel < 0) return;
         p = p->next;
     }
     printf("\n");
@@ -389,14 +408,30 @@ void pianificaPercorso(Stazione** head, int d_start, int d_end){
 
 
 
+
 int main() {
     Stazione* head;
+    char* input;
+    int i = 0; //contatore
+    int operazione = 0;
+    char comando[19];
+
 
     do{
-        //TODO input comandi con scanf(...);
-        //la stampa viene effettuata dalle funzioni stesse
 
-    }while(    /*TODO capire quando termina inserimento comandi*/   );
+        int x = scanf("%s", input);
+        if(x == EOF) continue;
+
+        /*TODO: idea--> effettivemente la quantità di dati che si possono inserire è limitata, solo l'elenco di
+         * autonomie delle auto non ha dimensione fissa, ma posso ottenerla dall'attributo numero-auto che viene
+         * passato anch'esso come parametro.
+         *
+         * devo trovare questa quantità limitata, una possibile soluzione potrebbero essere 4 campi fissi di cui uno
+         * usato solo se necessario, che sarebbe il vettore delle autonomie.
+         */
+
+
+    }while(input != NULL);
 
     printf("Hello, World!\n");
 
