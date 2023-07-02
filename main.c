@@ -25,6 +25,9 @@ typedef struct Stazione{
     struct Stazione* prev;
 }Stazione;
 
+/**
+ * Struttura dati usata per memorizzare le tappe del percorso
+ */
 typedef struct Percorso{
     Stazione x;
     struct Percorso* next;
@@ -35,7 +38,7 @@ typedef struct Percorso{
  * @param st stazione alla quale aggiungere l'auto
  * @param a autonomia (int)
  */
-int addAutoInOrder(Stazione* st, int a){
+int aggiungiAutoByDesc(Stazione* st, int a){
     Auto* newAuto = malloc(sizeof(Auto));
     newAuto->autonomia = a;
 
@@ -62,19 +65,56 @@ int addAutoInOrder(Stazione* st, int a){
 }
 
 
-void deallocaStazioni(Stazione* head) {//TODO da usare per deallocare l'autostrada.
-    Stazione* attuale = head;
-    Stazione* tmp;
+/**
+ * Funzione che dealloca la lista di auto data una stazione
+ * @param head testa della lista di auto
+ */
+void deallocaAuto(Auto** head) {
+    Auto* attuale = *head;
+    Auto* tmp;
 
-    while ( != NULL) {
-        temp = current->next;
-        free(current);
-        current = temp;
+    while (attuale != NULL) {
+        tmp = attuale->next;
+        free(attuale);
+        attuale = tmp;
     }
-
     head = NULL;
 }
 
+
+/**
+ * Funzione che dealloca la lista di stazioni (autostrada)
+ * @param head testa dell'autostrada
+ */
+void deallocaStazioni(Stazione** head) {
+    Stazione* attuale = *head;
+    Stazione* tmp;
+
+    while (attuale != NULL) {
+        tmp = attuale->next;
+        deallocaAuto(&attuale->head);
+        free(attuale);
+        attuale = tmp;
+    }
+    head = NULL;
+}
+
+
+/**
+ * Funzione che dealloca la lista di tappe (percorso migliore)
+ * @param head testa del percorso
+ */
+void deallocaPercorso(Percorso ** head) {
+    Percorso* attuale = *head;
+    Percorso* tmp;
+
+    while (attuale != NULL) {
+        tmp = attuale->next;
+        free(attuale);
+        attuale = tmp;
+    }
+    head = NULL;
+}
 
 /**
  * Funzione che aggiunge un auto scorrendo le stazioni fino a cercare (se esiste) quella desiderata,
@@ -87,7 +127,7 @@ void aggiungiAuto(Stazione** head, int dist, int autonomia){
     Stazione* st = *head;
     while(st->next->distanza<=dist && st->next != NULL){
         if(st->distanza==dist) {
-            int x = addAutoInOrder(st, autonomia); //condiviso con funzione aggiungiStazione(...)
+            int x = aggiungiAutoByDesc(st, autonomia); //condiviso con funzione aggiungiStazione(...)
             if(x==1)printf("aggiunta\n");
             else printf("non aggiunta\n");
             return;
@@ -166,7 +206,7 @@ void aggiungiStazione(Stazione** head, int dist, int n_a, int* a) {
     st->next = NULL;
 
     //Creazione e inserimento delle auto nella lista ordinata per autonomie decrescenti
-    for (int i = 0; i < n_a; i++) addAutoInOrder(st, a[i]);
+    for (int i = 0; i < n_a; i++) aggiungiAutoByDesc(st, a[i]);
 
     if (*head == NULL) {
         //se lista vuota -> st diventa la testa
@@ -299,8 +339,9 @@ void pianificaPercorso(Stazione** head, int d_start, int d_end){
                 //passa al prossimo elemento della lista
                 st=st->next;
             }
-            else{
+            else {
                 printf("nessun percorso");
+                return;
             }
         }
     }
@@ -331,20 +372,34 @@ void pianificaPercorso(Stazione** head, int d_start, int d_end){
                 //passa ad elemento precedente della lista
                 st=st->prev;
             }
-            else{
+            else {
                 printf("nessun percorso");
+                return;
             }
         }
-      //TODO stampa percorsi e deallocazioni varie
     }
 
-
-    //TODO printf percorsi
+    while (p != NULL){
+        printf("%d ",p->x.distanza);
+        p = p->next;
+    }
+    printf("\n");
+    deallocaPercorso(&p);
 }
 
 
 
 int main() {
+    Stazione* head;
+
+    do{
+        //TODO input comandi con scanf(...);
+        //la stampa viene effettuata dalle funzioni stesse
+
+    }while(    /*TODO capire quando termina inserimento comandi*/   );
+
     printf("Hello, World!\n");
+
+    deallocaStazioni(&head);
     return 0;
 }
