@@ -6,6 +6,11 @@
 #include <string.h>
 
 #define MAX_AUTO 512
+#define ADD_CAR 1
+#define DEL_CAR 2
+#define ADD_ST 3
+#define DEL_ST 4
+#define FND_PATH 5
 
 /**
  * Auto rappresentate dalla seguente struttura dati
@@ -30,7 +35,7 @@ typedef struct Stazione{
  * Struttura dati usata per memorizzare le tappe del percorso
  */
 typedef struct Percorso{
-    Stazione x;
+    int distanza;
     struct Percorso* next;
 }Percorso;
 
@@ -55,6 +60,7 @@ int aggiungiAutoByDesc(Stazione* st, int a){
         while (current->next != NULL && a <= current->next->autonomia) {
             if(i<MAX_AUTO) current = current->next;
             else{
+                free(newAuto);
                 return 0;
             }
             i++;
@@ -79,7 +85,7 @@ void deallocaAuto(Auto** head) {
         free(attuale);
         attuale = tmp;
     }
-    head = NULL;
+    *head = NULL;
 }
 
 
@@ -126,20 +132,24 @@ void deallocaPercorso(Percorso ** head) {
  */
 void aggiungiAuto(Stazione** head, int dist, int autonomia){
     Stazione* st = *head;
-    while(st->next->distanza<=dist && st->next != NULL){
-        if(st->distanza==dist) {
-            int x = aggiungiAutoByDesc(st, autonomia); //condiviso con funzione aggiungiStazione(...)
-            if (x == 1) {
-                int sentinel = printf("aggiunta\n");
-                if(sentinel < 0) return;
-            } else {
-                int sentinel = printf("non aggiunta\n");
-                if(sentinel < 0) return;
+    if(st->next != NULL){
+        while(st->next->distanza<=dist && st->next != NULL){
+            if(st->distanza==dist) {
+                int x = aggiungiAutoByDesc(st, autonomia); //condiviso con funzione aggiungiStazione(...)
+                if (x == 1) {
+                    int sentinel = printf("aggiunta\n");
+                    if(sentinel < 0) return;
+                } else {
+                    int sentinel = printf("non aggiunta\n");
+                    if(sentinel < 0) return;
+                }
+                return;
             }
-            return;
+            else st = st->next;
         }
-        else st = st->next;
     }
+    int sentinel = printf("non aggiunta\n");
+    if(sentinel < 0) return;
 }
 
 
@@ -154,7 +164,7 @@ void aggiungiTappa(Percorso **head, Stazione* st){
         p=p->next;
     }
     Percorso* tmp = malloc(sizeof(Percorso));
-    tmp->x = *st;
+    tmp->distanza = st->distanza;
     tmp->next=NULL;
     p->next=tmp;
 }
@@ -167,34 +177,36 @@ void aggiungiTappa(Percorso **head, Stazione* st){
  */
 void rottamaAuto(Stazione** head, int dist, int a){
     Stazione* st= *head;
-    while(st->next->distanza<=dist && st->next != NULL){
-        if(st->distanza==dist) {
-            Auto* tmp = st->head;
-            Auto* prev = NULL;
+    if(st->next!=NULL) {
+        while (st->next->distanza <= dist && st->next != NULL) {
+            if (st->distanza == dist) {
+                Auto *tmp = st->head;
+                Auto *prev = NULL;
 
-            //ciclo di ricerca dell'auto
-            while (tmp != NULL && tmp->autonomia != a) {
-                prev = tmp;
-                tmp = tmp->next;
-            }
+                //ciclo di ricerca dell'auto
+                while (tmp != NULL && tmp->autonomia != a) {
+                    prev = tmp;
+                    tmp = tmp->next;
+                }
 
-            //se è stata trovata:
-            if (tmp != NULL) {
-                if (prev == NULL)st->head = tmp->next;
-                else prev->next = tmp->next;
-                free(tmp);
-                int sentinel = printf("rottamata");
-                if(sentinel < 0) return;
-                return;
-            }
-            else{
-                int sentinel = printf("non rottamata");
-                if(sentinel < 0) return;
-                return;
-            }
+                //se è stata trovata:
+                if (tmp != NULL) {
+                    if (prev == NULL)st->head = tmp->next;
+                    else prev->next = tmp->next;
+                    free(tmp);
+                    int sentinel = printf("rottamata");
+                    if (sentinel < 0) return;
+                    return;
+                } else {
+                    int sentinel = printf("non rottamata");
+                    if (sentinel < 0) return;
+                    return;
+                }
+            } else st = st->next;
         }
-        else st = st->next;
     }
+    int sentinel = printf("non rottamata");
+    if (sentinel < 0) return;
 }
 
 
@@ -230,6 +242,8 @@ void aggiungiStazione(Stazione** head, int dist, int n_a, int* a) {
         if(sentinel <0) return;
         return;
     } else if (dist == (*head)->distanza) {
+        deallocaAuto(&st->head);
+        free(st);
         int sentinel = printf("non aggiunta\n");
         if(sentinel <0) return;
         return;
@@ -238,6 +252,8 @@ void aggiungiStazione(Stazione** head, int dist, int n_a, int* a) {
         Stazione* tmp = *head;
         while (tmp->next != NULL && dist > tmp->next->distanza) {
             if (tmp->next->distanza == dist) {
+                deallocaAuto(&st->head);
+                free(st);
                 int sentinel = printf("non aggiunta\n");
                 if(sentinel <0) return;
                 return;
@@ -264,34 +280,51 @@ void aggiungiStazione(Stazione** head, int dist, int n_a, int* a) {
  */
 void demolisciStazione(Stazione** head, int dist){
     Stazione* st = *head;
-    while(st->next->distanza<=dist && st->next != NULL){
-        if(st->distanza==dist) {
-            if (head == NULL || st == NULL) {
-                // La lista è vuota o la stazione da eliminare è nulla
-                int sentinel = printf("non demolita");
+
+    if (head == NULL || st == NULL) {
+        // La lista è vuota o la stazione da eliminare è nulla
+        int sentinel = printf("non demolita");
+        if(sentinel <0) return;
+        return;
+    }
+    if(st->next != NULL){
+        while(st->next->distanza<=dist && st->next != NULL){
+            if(st->distanza==dist) {
+                //Se la stazione da eliminare è la testa della lista
+                if (*head == st) *head = st->next;
+
+                //Collega il nodo precedente al nodo successivo
+                if (st->prev != NULL) st->prev->next = st->next;
+
+                //Collega il nodo successivo al nodo precedente
+                if (st->next != NULL) st->next->prev = st->prev;
+
+                //Dealloca la memoria della stazione eliminata
+                deallocaAuto(&st->head);
+                free(st);
+                int sentinel = printf("demolita");
                 if(sentinel <0) return;
                 return;
             }
-
-            //Se la stazione da eliminare è la testa della lista
-            if (*head == st) *head = st->next;
-
-            //Collega il nodo precedente al nodo successivo
-            if (st->prev != NULL) st->prev->next = st->next;
-
-            //Collega il nodo successivo al nodo precedente
-            if (st->next != NULL) st->next->prev = st->prev;
-
-            //Dealloca la memoria della stazione eliminata
+            else st = st->next;
+        }
+        int sentinel = printf("non demolita");
+        if(sentinel <0) return;
+    }
+    else{
+        if(st->distanza==dist){
+            *head = st->next;
+            deallocaAuto(&st->head);
             free(st);
             int sentinel = printf("demolita");
             if(sentinel <0) return;
             return;
         }
-        else st = st->next;
+        else{
+            int sentinel = printf("non demolita");
+            if(sentinel <0) return;
+        }
     }
-    int sentinel = printf("non demolita");
-    if(sentinel <0) return;
 }
 
 
@@ -303,11 +336,17 @@ void demolisciStazione(Stazione** head, int dist){
  */
 Stazione* cercaStazione(Stazione** head, int dist){
     Stazione* st = *head;
-    while(st->next->distanza<=dist && st->next != NULL){
-        if(st->distanza==dist) return st;
-        st = st->next;
+    if(st->next!=NULL) {
+        while (st->next->distanza <= dist && st->next != NULL) {
+            if (st->distanza == dist) return st;
+            st = st->next;
+        }
     }
-    return *head; //da rivedere poiche non arriverà a questo punto.
+    else {
+        if(st->distanza==dist) return st;
+        else return NULL;
+    }
+    return NULL;
 }
 
 /**
@@ -319,6 +358,12 @@ Stazione* cercaStazione(Stazione** head, int dist){
  */
 void pianificaPercorso(Stazione** head, int d_start, int d_end){
     Stazione* st = cercaStazione(head, d_start);
+    if(st==NULL){
+        int sentinel = printf("nessun percorso");
+        if(sentinel <0) return;
+        return;
+    }
+
     Percorso* p = malloc(sizeof(Percorso));
 
     if(d_start == d_end){               //stazioni coincidenti
@@ -335,14 +380,21 @@ void pianificaPercorso(Stazione** head, int d_start, int d_end){
             return;
         }
 
-        p->x = *st;
+        p->distanza = st->distanza;
         p->next = NULL;
 
         while (st->next != NULL){
             if((a >= (st->next->distanza - st->distanza))){
                 if(st->next->head->autonomia >= d){
                     aggiungiTappa(&p, st->next);
-                    aggiungiTappa(&p, cercaStazione(head,d_end));
+                    Stazione* tmp = cercaStazione(head,d_end);
+                    if(tmp == NULL){
+                        deallocaPercorso(&p);
+                        int sentinel = printf("nessun percorso");
+                        if(sentinel <0) return;
+                        return;
+                    }
+                    aggiungiTappa(&p, tmp);
                     break;
                 }
                 if((a - ((st->next->distanza - st->distanza))) < st->next->head->autonomia){
@@ -355,6 +407,7 @@ void pianificaPercorso(Stazione** head, int d_start, int d_end){
                 st=st->next;
             }
             else {
+                deallocaPercorso(&p);
                 int sentinel = printf("nessun percorso");
                 if(sentinel <0) return;
                 return;
@@ -370,14 +423,21 @@ void pianificaPercorso(Stazione** head, int d_start, int d_end){
             return;
         }
 
-        p->x = *st;
+        p->distanza = st->distanza;
         p->next = NULL;
 
         while (st->prev != NULL){
             if((a >= (st->distanza - st->prev->distanza))){
                 if(st->prev->head->autonomia >= d){
                     aggiungiTappa(&p, st->prev);
-                    aggiungiTappa(&p, cercaStazione(head,d_end));
+                    Stazione* tmp = cercaStazione(head,d_end);
+                    if(tmp == NULL){
+                        deallocaPercorso(&p);
+                        int sentinel = printf("nessun percorso");
+                        if(sentinel <0) return;
+                        return;
+                    }
+                    aggiungiTappa(&p, tmp);
                     break;
                 }
                 if((a - (st->distanza - st->prev->distanza)) < st->prev->head->autonomia){
@@ -390,6 +450,7 @@ void pianificaPercorso(Stazione** head, int d_start, int d_end){
                 st=st->prev;
             }
             else {
+                deallocaPercorso(&p);
                 int sentinel = printf("nessun percorso");
                 if(sentinel <0) return;
                 return;
@@ -398,7 +459,7 @@ void pianificaPercorso(Stazione** head, int d_start, int d_end){
     }
     int sentinel;
     while (p != NULL){
-        sentinel = printf("%d ",p->x.distanza);
+        sentinel = printf("%d ",p->distanza);
         if(sentinel < 0) return;
         p = p->next;
     }
@@ -407,33 +468,46 @@ void pianificaPercorso(Stazione** head, int d_start, int d_end){
 }
 
 
-
-
 int main() {
     Stazione* head;
-    char* input;
-    int i = 0; //contatore
-    int operazione = 0;
-    char comando[19];
+    char input[20];
+    int i = 0;
+    int opcode = 0;
+    while(scanf("%c", &input[i]) != 0){
+        i++;
+        if(strncmp(input, "aggiungi-stazione", strlen("aggiungi-stazione"))==0) {
+            opcode = ADD_ST;
+            break;
+        }
+        if(strncmp(input, "aggiungi-auto", strlen("aggiungi-auto"))==0) {
+            opcode = ADD_CAR;
+            break;
+        }
+        if(strncmp(input, "rottama-auto", strlen("rottama-auto"))==0) {
+            opcode = DEL_CAR;
+            break;
+        }
+        if(strncmp(input, "demolisci-stazione", strlen("demolisci-stazione"))==0) {
+            opcode = DEL_ST;
+            break;
+        }
+        if(strncmp(input, "pianifica-percorso", strlen("pianifica-percorso"))==0) {
+            opcode = FND_PATH;
+            break;
+        }
+    }
+    
+    char data[100];
+    i = 0;
+    switch(opcode){
+        case ADD_CAR:
 
-
-    do{
-
-        int x = scanf("%s", input);
-        if(x == EOF) continue;
-
-        /*TODO: idea--> effettivemente la quantità di dati che si possono inserire è limitata, solo l'elenco di
-         * autonomie delle auto non ha dimensione fissa, ma posso ottenerla dall'attributo numero-auto che viene
-         * passato anch'esso come parametro.
-         *
-         * devo trovare questa quantità limitata, una possibile soluzione potrebbero essere 4 campi fissi di cui uno
-         * usato solo se necessario, che sarebbe il vettore delle autonomie.
-         */
-
-
-    }while(input != NULL);
-
-    printf("Hello, World!\n");
+            break;
+        case DEL_CAR: break;
+        case DEL_ST: break;
+        case ADD_ST: break;
+        case FND_PATH: break;
+    }
 
     deallocaStazioni(&head);
     return 0;
