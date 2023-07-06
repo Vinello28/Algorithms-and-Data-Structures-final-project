@@ -131,10 +131,15 @@ void deallocaPercorso(Percorso ** head) {
  * @param autonomia dell'auto da inserire
  */
 void aggiungiAuto(Stazione** head, int dist, int autonomia){
+    printf("entrato in aggiungi auto");
     Stazione* st = *head;
+    printf("assegnamento st = testa");
+
     if(st->next != NULL){
+        printf("entrato in if");
         while(st->next->distanza<=dist && st->next != NULL){
             if(st->distanza==dist) {
+                printf("trovata stazione");
                 int x = aggiungiAutoByDesc(st, autonomia); //condiviso con funzione aggiungiStazione(...)
                 if (x == 1) {
                     int sentinel = printf("aggiunta\n");
@@ -470,43 +475,33 @@ void pianificaPercorso(Stazione** head, int d_start, int d_end){
 
 int main() {
     Stazione* head;
+    FILE* source = stdin;
     char input[20];
-    int i = 0;
-    int opcode = 0;
-    while(scanf("%c", &input[i]) != 0){
-        i++;
+    while(fscanf(source, "%s", input) != EOF){
         if(strncmp(input, "aggiungi-stazione", strlen("aggiungi-stazione"))==0) {
-            opcode = ADD_ST;
-            break;
+            int dist, n_a;
+            if(fscanf(source, "%d %d", &dist, &n_a)!=EOF){
+                int a[n_a];
+                for(int i = 0; i < n_a; i++)if(fscanf(source, "%d", &a[i])!=EOF)continue;
+                aggiungiStazione(&head, dist, n_a, a);
+            }
         }
         if(strncmp(input, "aggiungi-auto", strlen("aggiungi-auto"))==0) {
-            opcode = ADD_CAR;
-            break;
+            int dist, a;
+            if(fscanf(source, "%d %d", &dist, &a) != EOF) aggiungiAuto(&head, dist, a);
         }
         if(strncmp(input, "rottama-auto", strlen("rottama-auto"))==0) {
-            opcode = DEL_CAR;
-            break;
+            int dist, a;
+            if(fscanf(source, "%d %d", &dist, &a) != EOF) rottamaAuto(&head, dist, a);
         }
         if(strncmp(input, "demolisci-stazione", strlen("demolisci-stazione"))==0) {
-            opcode = DEL_ST;
-            break;
+            int dist;
+            if(fscanf(source, "%d", &dist)!=EOF) demolisciStazione(&head, dist);
         }
         if(strncmp(input, "pianifica-percorso", strlen("pianifica-percorso"))==0) {
-            opcode = FND_PATH;
-            break;
+            int start, end;
+            if(fscanf(source, "%d %d", &start, &end)) pianificaPercorso(&head, start, end);
         }
-    }
-    
-    char data[100];
-    i = 0;
-    switch(opcode){
-        case ADD_CAR:
-
-            break;
-        case DEL_CAR: break;
-        case DEL_ST: break;
-        case ADD_ST: break;
-        case FND_PATH: break;
     }
 
     deallocaStazioni(&head);
