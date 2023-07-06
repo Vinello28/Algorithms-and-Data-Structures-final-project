@@ -6,11 +6,6 @@
 #include <string.h>
 
 #define MAX_AUTO 512
-#define ADD_CAR 1
-#define DEL_CAR 2
-#define ADD_ST 3
-#define DEL_ST 4
-#define FND_PATH 5
 
 /**
  * Auto rappresentate dalla seguente struttura dati
@@ -103,7 +98,7 @@ void deallocaStazioni(Stazione** head) {
         free(attuale);
         attuale = tmp;
     }
-    head = NULL;
+    *head = NULL;
 }
 
 
@@ -120,7 +115,7 @@ void deallocaPercorso(Percorso ** head) {
         free(attuale);
         attuale = tmp;
     }
-    head = NULL;
+    *head = NULL;
 }
 
 /**
@@ -134,7 +129,7 @@ void aggiungiAuto(Stazione** head, int dist, int autonomia){
     Stazione* st = *head;
 
     if(st->next != NULL){
-        while(st->next->distanza<=dist && st->next != NULL){
+        while(st->next != NULL && st->next->distanza<=dist){
             if(st->distanza==dist) {
                 int x = aggiungiAutoByDesc(st, autonomia); //condiviso con funzione aggiungiStazione(...)
                 if (x == 1) {
@@ -179,7 +174,7 @@ void aggiungiTappa(Percorso **head, Stazione* st){
 void rottamaAuto(Stazione** head, int dist, int a){
     Stazione* st= *head;
     if(st->next!=NULL) {
-        while (st->next->distanza <= dist && st->next != NULL) {
+        while (st->next != NULL && st->next->distanza<=dist) {
             if (st->distanza == dist) {
                 Auto *tmp = st->head;
                 Auto *prev = NULL;
@@ -477,7 +472,7 @@ int main() {
         if(strncmp(input, "aggiungi-stazione", strlen("aggiungi-stazione"))==0) {
             int dist, n_a;
             if(fscanf(source, "%d %d", &dist, &n_a)!=EOF){
-                int a[n_a];
+                int a[512];
                 for(int i = 0; i < n_a; i++)if(fscanf(source, "%d", &a[i])!=EOF)continue;
                 aggiungiStazione(&head, dist, n_a, a);
             }
