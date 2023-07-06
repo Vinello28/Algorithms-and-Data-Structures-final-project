@@ -131,15 +131,11 @@ void deallocaPercorso(Percorso ** head) {
  * @param autonomia dell'auto da inserire
  */
 void aggiungiAuto(Stazione** head, int dist, int autonomia){
-    printf("entrato in aggiungi auto");
     Stazione* st = *head;
-    printf("assegnamento st = testa");
 
     if(st->next != NULL){
-        printf("entrato in if");
         while(st->next->distanza<=dist && st->next != NULL){
             if(st->distanza==dist) {
-                printf("trovata stazione");
                 int x = aggiungiAutoByDesc(st, autonomia); //condiviso con funzione aggiungiStazione(...)
                 if (x == 1) {
                     int sentinel = printf("aggiunta\n");
