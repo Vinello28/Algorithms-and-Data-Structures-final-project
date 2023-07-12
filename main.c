@@ -190,7 +190,10 @@ void aggiungiTappa(Percorso **head, Stazione* st){
  */
 void rottamaAuto(Stazione** head, int dist, int a){
     //TODO debugging
+    printf("INFO: entrato in rottamaAuto\n")
     Stazione* st= *head;
+
+    printf("INFO: \n");
     if(st->next!=NULL) {
         while (st->next != NULL && st->next->distanza<=dist) {
             if (st->distanza == dist) {
@@ -208,18 +211,41 @@ void rottamaAuto(Stazione** head, int dist, int a){
                     if (prev == NULL)st->head = tmp->next;
                     else prev->next = tmp->next;
                     free(tmp);
-                    int sentinel = printf("rottamata");
+                    int sentinel = printf("rottamata\n");
                     if (sentinel < 0) return;
                     return;
                 } else {
-                    int sentinel = printf("non rottamata");
+                    int sentinel = printf("non rottamata\n");
                     if (sentinel < 0) return;
                     return;
                 }
             } else st = st->next;
         }
+    } else if(st->distanza==dist){
+        Auto *tmp = st->head;
+        Auto *prev = NULL;
+
+        //ciclo di ricerca dell'auto
+        while (tmp != NULL && tmp->autonomia != a) {
+            prev = tmp;
+            tmp = tmp->next;
+        }
+
+        //se è stata trovata:
+        if (tmp != NULL) {
+            if (prev == NULL)st->head = tmp->next;
+            else prev->next = tmp->next;
+            free(tmp);
+            int sentinel = printf("rottamata\n");
+            if (sentinel < 0) return;
+            return;
+        } else {
+            int sentinel = printf("non rottamata\n");
+            if (sentinel < 0) return;
+            return;
+        }
     }
-    int sentinel = printf("non rottamata");
+    int sentinel = printf("non rottamata\n");
     if (sentinel < 0) return;
 }
 
