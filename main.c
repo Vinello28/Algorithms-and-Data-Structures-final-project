@@ -7,7 +7,7 @@
 
 #define MAX_AUTO 512
 
-//TODO eliminare tutti i segmentation fault, sicuramente funziona il riconoscimento dei programmi
+//TODO eliminare tutti i segmentation fault, testata la gestione delle auto, finire gestione stazioni e pianificaPercorso
 
 /**
  * Auto rappresentate dalla seguente struttura dati
@@ -127,10 +127,9 @@ void deallocaPercorso(Percorso ** head) {
 void aggiungiAuto(Stazione** head, int dist, int autonomia){
     printf("INFO: entrato in aggiungiAuto\n");
     Stazione* st = *head;
-    printf("INFO: post assegnamento testa\n");
 
     if(st != NULL){
-        printf("INFO: entrato in if(con st->next!= null\n");
+        printf("INFO: check distanza\n");
         if(st->distanza == dist){
             st->num_auto++;
             aggiungiAutoByDesc(&st->head, autonomia); //condiviso con funzione aggiungiStazione(...)
@@ -139,7 +138,7 @@ void aggiungiAuto(Stazione** head, int dist, int autonomia){
             return;
         }
         while(st->next != NULL && st->next->distanza<=dist){
-            printf("INFO: entrato in while\n");
+            printf("INFO: scorrimento stazioni\n");
             if(st->distanza==dist) {
                 printf("INFO: stazione trovata\n");
                 if(st->num_auto+1<MAX_AUTO){
@@ -189,13 +188,12 @@ void aggiungiTappa(Percorso **head, Stazione* st){
  * @param a autonomia dell'auto da eliminare.
  */
 void rottamaAuto(Stazione** head, int dist, int a){
-    //TODO debugging
-    printf("INFO: entrato in rottamaAuto\n")
+    printf("INFO: entrato in rottamaAuto\n");
     Stazione* st= *head;
 
-    printf("INFO: \n");
     if(st->next!=NULL) {
         while (st->next != NULL && st->next->distanza<=dist) {
+            printf("INFO: check distanza\n");
             if (st->distanza == dist) {
                 Auto *tmp = st->head;
                 Auto *prev = NULL;
@@ -205,9 +203,11 @@ void rottamaAuto(Stazione** head, int dist, int a){
                     prev = tmp;
                     tmp = tmp->next;
                 }
+                printf("INFO: ciclo ricerca auto completato\n");
 
                 //se è stata trovata:
                 if (tmp != NULL) {
+                    printf("INFO: auto trovata\n");
                     if (prev == NULL)st->head = tmp->next;
                     else prev->next = tmp->next;
                     free(tmp);
@@ -215,6 +215,7 @@ void rottamaAuto(Stazione** head, int dist, int a){
                     if (sentinel < 0) return;
                     return;
                 } else {
+                    printf("INFO: auto non trovata\n");
                     int sentinel = printf("non rottamata\n");
                     if (sentinel < 0) return;
                     return;
@@ -230,9 +231,11 @@ void rottamaAuto(Stazione** head, int dist, int a){
             prev = tmp;
             tmp = tmp->next;
         }
+        printf("INFO: ricerca auto completata\n");
 
         //se è stata trovata:
         if (tmp != NULL) {
+            printf("INFO: auto trovata\n");
             if (prev == NULL)st->head = tmp->next;
             else prev->next = tmp->next;
             free(tmp);
@@ -240,6 +243,7 @@ void rottamaAuto(Stazione** head, int dist, int a){
             if (sentinel < 0) return;
             return;
         } else {
+            printf("INFO: auto non trovata\n");
             int sentinel = printf("non rottamata\n");
             if (sentinel < 0) return;
             return;
@@ -299,7 +303,6 @@ void aggiungiStazione(Stazione** testa, int distanza, int numeroAuto, int* auton
         // Caso in cui la lista delle stazioni è vuota
         *testa = newstz;
         int sentinel = printf("aggiunta\n");
-        printf("INFO: stazione inserita\n");
         if(sentinel<0)return;
         return;
     } else if (distanza < (*testa)->distanza) {
@@ -319,6 +322,7 @@ void aggiungiStazione(Stazione** testa, int distanza, int numeroAuto, int* auton
         if(current->distanza == distanza){
             deallocaAuto(&newstz->head);
             free(newstz);
+            printf("INFO: stazione gia' presente\n");
             int sentinel = printf("non aggiunta\n");
             if(sentinel<0)return;
             return;
@@ -342,6 +346,7 @@ void aggiungiStazione(Stazione** testa, int distanza, int numeroAuto, int* auton
  * @return la testa della lista se modificata, altrimenti NULL;
  */
 void demolisciStazione(Stazione** head, int dist){
+    //TODO function debugging
     Stazione* st = *head;
 
     if (head == NULL || st == NULL) {
