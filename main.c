@@ -55,7 +55,7 @@ void aggiungiAutoByDesc(Auto** testa, int a){
         // Inserimento dell'auto nella lista in ordine decrescente di autonomia
         int i=0;
         Auto* current = *testa;
-        while (current->next != NULL && current->next->autonomia > a) {
+        while (i<MAX_AUTO && current->next != NULL && current->next->autonomia > a) {
             current = current->next;
             i++;
         }
@@ -137,7 +137,7 @@ void aggiungiAuto(Stazione** head, int dist, int autonomia){   //TODO problema s
             if(sentinel < 0) return;
             return;
         }
-        while(st->next != NULL && st->next->distanza<=dist || st->next==NULL && st->distanza==dist){
+        while((st->next != NULL && st->next->distanza<=dist) || (st->next==NULL && st->distanza==dist)){
             printf("INFO: scorrimento stazioni\n");
             if(st->distanza==dist) {
                 printf("INFO: stazione trovata\n");
@@ -192,7 +192,7 @@ void rottamaAuto(Stazione** head, int dist, int a){
     Stazione* st= *head;
 
     if(st->next!=NULL) {
-        while (st->next != NULL && st->next->distanza<=dist || st->next==NULL && st->distanza==dist) {
+        while ((st->next != NULL && st->next->distanza<=dist) || (st->next==NULL && st->distanza==dist)) {
             printf("INFO: check distanza\n");
             if (st->distanza == dist) {
                 Auto *tmp = st->head;
@@ -394,7 +394,7 @@ void demolisciStazione(Stazione** head, int dist){
         return;
     }
     if(st->next != NULL){
-        while(st->next != NULL && st->next->distanza<=dist || st->next==NULL && st->distanza<=dist){ //TODO errore, non entra nel ciclo se stazione è a fine lista
+        while((st->next != NULL && st->next->distanza<=dist) || (st->next==NULL && st->distanza<=dist)){ //TODO errore, non entra nel ciclo se stazione è a fine lista
             printf("INFO: passa alla prossima stazione\n");
             if(st->distanza==dist) {
                 printf("INFO: stazione trovata, inizio rimozione...\n");
