@@ -7,7 +7,7 @@
 
 #define MAX_AUTO 512
 
-//TODO eliminare tutti i segmentation fault, testata la gestione delle auto, finire gestione stazioni e pianificaPercorso
+//TODO eliminare tutti i segmentation fault, finire gestione stazioni e pianificaPercorso
 
 /**
  * Auto rappresentate dalla seguente struttura dati
@@ -41,7 +41,7 @@ typedef struct Percorso{
  * @param st stazione alla quale aggiungere l'auto
  * @param a autonomia (int)
  */
-void aggiungiAutoByDesc(Auto** testa, int a){    //TODO verificare e sistemare questa funzione
+void aggiungiAutoByDesc(Auto** testa, int a){
     // Creazione di una nuova auto
     Auto* nuovaAuto = (Auto*)malloc(sizeof(Auto));
     nuovaAuto->autonomia = a;
@@ -124,7 +124,7 @@ void deallocaPercorso(Percorso ** head) {
  * @param dist distanza della stazione cercata
  * @param autonomia dell'auto da inserire
  */
-void aggiungiAuto(Stazione** head, int dist, int autonomia){
+void aggiungiAuto(Stazione** head, int dist, int autonomia){   //TODO problema scorrimento stazioni
     printf("INFO: entrato in aggiungiAuto\n");
     Stazione* st = *head;
 
@@ -137,7 +137,7 @@ void aggiungiAuto(Stazione** head, int dist, int autonomia){
             if(sentinel < 0) return;
             return;
         }
-        while(st->next != NULL && st->next->distanza<=dist){
+        while(st->next != NULL && st->next->distanza<=dist || st->next==NULL && st->distanza==dist){
             printf("INFO: scorrimento stazioni\n");
             if(st->distanza==dist) {
                 printf("INFO: stazione trovata\n");
@@ -192,7 +192,7 @@ void rottamaAuto(Stazione** head, int dist, int a){
     Stazione* st= *head;
 
     if(st->next!=NULL) {
-        while (st->next != NULL && st->next->distanza<=dist) {
+        while (st->next != NULL && st->next->distanza<=dist || st->next==NULL && st->distanza==dist) {
             printf("INFO: check distanza\n");
             if (st->distanza == dist) {
                 Auto *tmp = st->head;
@@ -316,7 +316,30 @@ void aggiungiStazione(Stazione** testa, int distanza, int numeroAuto, int* auton
         return;
     } else {
         Stazione* current = *testa;
-        while (current->next != NULL && current->next->distanza < distanza) {
+        while (current != NULL) {
+            if (current->distanza == distanza) {
+                printf("INFO: stazione gia' presente\n");
+                int sentinel = printf("non aggiunta\n");
+                if (sentinel < 0) return;
+                return;
+            }
+            if (current->next != NULL && current->next->distanza>distanza){ //inserimento tra due stazioni
+                current->next->prev = newstz;
+                newstz->next=current->next;
+                newstz->prev=current;
+                current->next=newstz;
+                int sentinel = printf("aggiunta\n");
+                if(sentinel<0)return;
+                return;
+            }
+            if(current->next==NULL && current->distanza<distanza){
+                newstz->prev=current;
+                current->next=newstz;
+                newstz->next=NULL;
+                int sentinel = printf("aggiunta\n");
+                if(sentinel<0)return;
+                return;
+            }
             current = current->next;
         }
         if(current->distanza == distanza){
@@ -327,14 +350,6 @@ void aggiungiStazione(Stazione** testa, int distanza, int numeroAuto, int* auton
             if(sentinel<0)return;
             return;
         }
-        newstz->next = current->next;
-        newstz->prev = current;
-        if (current->next != NULL) {
-            current->next->prev = newstz;
-        }
-        current->next = newstz;
-        int sentinel = printf("aggiunta\n");
-        if(sentinel<0)return;
     }
 }
 
@@ -374,13 +389,13 @@ void demolisciStazione(Stazione** head, int dist){
 
         printf("INFO: stazione correttamente deallocata\n");
 
-        int sentinel = printf("demolita");
+        int sentinel = printf("demolita\n");
         if(sentinel <0) return;
         return;
     }
     if(st->next != NULL){
-        printf("INFO: passa alla prossima stazione\n");
-        while(st->next != NULL && st->next->distanza<=dist){ //TODO errore, non entra nel ciclo se stazione è a fine lista
+        while(st->next != NULL && st->next->distanza<=dist || st->next==NULL && st->distanza<=dist){ //TODO errore, non entra nel ciclo se stazione è a fine lista
+            printf("INFO: passa alla prossima stazione\n");
             if(st->distanza==dist) {
                 printf("INFO: stazione trovata, inizio rimozione...\n");
                 //Se la stazione da eliminare è la testa della lista
@@ -398,20 +413,29 @@ void demolisciStazione(Stazione** head, int dist){
 
                 printf("INFO: stazione correttamente deallocata\n");
 
-                int sentinel = printf("demolita");
+                int sentinel = printf("demolita\n");
                 if(sentinel <0) return;
                 return;
             }
             else st = st->next;
         }
-
-        printf("INFO: stazione non trovata\n");
-
-        int sentinel = printf("non demolita");
-        if(sentinel <0) return;
+        if(st->distanza==dist){                          //WARNING: modificato da qui
+            printf("INFO: stazione trovata\n");
+            *head = st->next;
+            deallocaAuto(&st->head);
+            free(st);
+            printf("INFO: stazione correttamente deallocata\n");
+            int sentinel = printf("demolita\n");
+            if(sentinel <0) return;
+            return;
+        }
+        else{
+            int sentinel = printf("non demolita\n");
+            if(sentinel <0) return;
+        }                                                //WARNING: a qui
     }
     else{
-        printf("INFO: entrando nel ramo else\n");
+        printf("INFO: la stazione si trova alla fine\n");
 
         if(st->distanza==dist){
             printf("INFO: stazione trovata\n");
