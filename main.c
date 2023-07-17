@@ -377,6 +377,16 @@ Stazione* cercaStazione(Stazione** head, int dist){
     return NULL;
 }
 
+
+void printfPercorso(Percorso* p) {
+    while (p != NULL) {
+        printf("%d ", p->distanza);
+        p = p->next;
+    }
+    printf("\n");
+}
+
+
 /**
  * Principale funzione del programma, si occupa di cercare il percorso con meno tappe tra due stazioni date,
  * si assume che queste siano sempre presenti
@@ -384,116 +394,23 @@ Stazione* cercaStazione(Stazione** head, int dist){
  * @param d_start distanza stazione di partenza
  * @param d_end distanza stazione arrivo
  */
-void pianificaPercorso(Stazione** head, int d_start, int d_end){
+void pianificaPercorso(Stazione** head, int d_start, int d_end) {
     Stazione* st = cercaStazione(head, d_start);
-    if(st==NULL){
-        int sentinel = printf("nessun percorso");
-        if(sentinel <0) return;
+    if (st == NULL) {
+        if(printf("nessun percorso\n")<0)return;
+        return;
+    }
+    if (d_start == d_end) {
+        if(printf("%d\n", d_start)<0) return;
         return;
     }
 
-    Percorso* p = malloc(sizeof(Percorso));
+    //TODO implementazione algoritmo di ricerca vero e proprio
 
-    if(d_start == d_end){               //stazioni coincidenti
-        int sentinel = printf("%d", d_start);
-        if(sentinel <0) return;
-        return;
-    }
-    if(d_start<d_end){                  //ricerca in avanti
-        int d = d_end-d_start;
-        int a = st->head->autonomia;
-        if (a >= d){
-            int sentinel = printf("%d %d", d_start, d_end);
-            if(sentinel <0) return;
-            return;
-        }
-
-        p->distanza = st->distanza;
-        p->next = NULL;
-
-        while (st->next != NULL){
-            if((a >= (st->next->distanza - st->distanza))){
-                if(st->next->head->autonomia >= d){
-                    aggiungiTappa(&p, st->next);
-                    Stazione* tmp = cercaStazione(head,d_end);
-                    if(tmp == NULL){
-                        deallocaPercorso(&p);
-                        int sentinel = printf("nessun percorso");
-                        if(sentinel <0) return;
-                        return;
-                    }
-                    aggiungiTappa(&p, tmp);
-                    break;
-                }
-                if((a - ((st->next->distanza - st->distanza))) < st->next->head->autonomia){
-                    a=st->next->head->autonomia;
-                    aggiungiTappa(&p, st->next);
-                }else a = a - ((st->next->distanza - st->distanza));
-                //decrementa la distanza attuale
-                d = d-st->next->distanza;
-                //passa al prossimo elemento della lista
-                st=st->next;
-            }
-            else {
-                deallocaPercorso(&p);
-                int sentinel = printf("nessun percorso");
-                if(sentinel <0) return;
-                return;
-            }
-        }
-    }
-    if(d_start>d_end){                  //ricerca all'indietro
-        int d = d_start - d_end;
-        int a = st->head->autonomia;
-        if (a >= d){
-            int sentinel = printf("%d %d", d_start, d_end);
-            if(sentinel <0) return;
-            return;
-        }
-
-        p->distanza = st->distanza;
-        p->next = NULL;
-
-        while (st->prev != NULL){
-            if((a >= (st->distanza - st->prev->distanza))){
-                if(st->prev->head->autonomia >= d){
-                    aggiungiTappa(&p, st->prev);
-                    Stazione* tmp = cercaStazione(head,d_end);
-                    if(tmp == NULL){
-                        deallocaPercorso(&p);
-                        int sentinel = printf("nessun percorso");
-                        if(sentinel <0) return;
-                        return;
-                    }
-                    aggiungiTappa(&p, tmp);
-                    break;
-                }
-                if((a - (st->distanza - st->prev->distanza)) < st->prev->head->autonomia){
-                    a=st->prev->head->autonomia;
-                    aggiungiTappa(&p, st->prev);
-                }else a = a - (st->distanza - st->prev->distanza);
-                //decrementa la distanza attuale
-                d = d-st->prev->distanza;
-                //passa ad elemento precedente della lista
-                st=st->prev;
-            }
-            else {
-                deallocaPercorso(&p);
-                int sentinel = printf("nessun percorso");
-                if(sentinel <0) return;
-                return;
-            }
-        }
-    }
-    int sentinel;
-    while (p != NULL){
-        sentinel = printf("%d ",p->distanza);
-        if(sentinel < 0) return;
-        p = p->next;
-    }
-    printf("\n");
-    deallocaPercorso(&p);
 }
+
+
+
 
 
 int main() {
@@ -511,7 +428,6 @@ int main() {
         }
         if(strncmp(input, "aggiungi-auto", strlen("aggiungi-auto"))==0) {
             int dist, a;
-            printf("INFO: spacchettamento comando\n");
             if(fscanf(source, "%d %d", &dist, &a) != EOF) aggiungiAuto(&head, dist, a);
         }
         if(strncmp(input, "rottama-auto", strlen("rottama-auto"))==0) {
