@@ -41,29 +41,32 @@ typedef struct Percorso{
  * @param st stazione alla quale aggiungere l'auto
  * @param a autonomia (int)
  */
-void aggiungiAutoByDesc(Auto** testa, int a){
+ void aggiungiAutoByDesc(Auto** testa, int a) {
     // Creazione di una nuova auto
-    Auto* nuovaAuto = (Auto*)malloc(sizeof(Auto));
+    Auto* nuovaAuto = malloc(sizeof(Auto));
     nuovaAuto->autonomia = a;
     nuovaAuto->next = NULL;
-    // Controllo se la nuova auto debba diventare la testa della lista
+
+    printf("INFO_FUN_addAutoDesc: pre-check testa\n");
+    //Check testa
     if (*testa == NULL || a > (*testa)->autonomia) {
+        printf("INFO_FUN_addAutoDesc: sostituzione testa con nuova autonomia-> %d\n", a);
         nuovaAuto->next = *testa;
         *testa = nuovaAuto;
         return;
-    } else{
-        // Inserimento dell'auto nella lista in ordine decrescente di autonomia
-        int i=0;
-        Auto* current = *testa;
-        while (i<MAX_AUTO && current->next != NULL && current->next->autonomia > a) {
-            current = current->next;
-            i++;
-        }
-        nuovaAuto->next = current->next;
-        current->next = nuovaAuto;
-        return;
     }
+
+    // Inserimento dell'auto nella lista in ordine decrescente di autonomia
+    Auto* current = *testa;
+    while (current->next != NULL && current->next->autonomia > a) {
+        printf("INFO_FUN_addAutoDesc: in loop auto-> a: %d\n", current->autonomia);
+        current = current->next;
+    }
+    nuovaAuto->next = current->next;
+    current->next = nuovaAuto;
 }
+
+
 
 
 /**
@@ -378,12 +381,16 @@ Stazione* cercaStazione(Stazione** head, int dist){
 }
 
 
-void printfPercorso(Percorso* p) {
+/**
+ * Funzione che si occupa di mandare in stdout il percorso ottimale
+ * @param p testa della lista di tappe
+ */
+void stdoutPercorso(Percorso* p) {
     while (p != NULL) {
-        printf("%d ", p->distanza);
+        if(printf("%d ", p->distanza)<0)return;
         p = p->next;
     }
-    printf("\n");
+    if(printf("\n")<0)return;
 }
 
 
@@ -395,8 +402,11 @@ void printfPercorso(Percorso* p) {
  * @param d_end distanza stazione arrivo
  */
 void pianificaPercorso(Stazione** head, int d_start, int d_end) {
+    printf("INFO: entrato in pianifica percorso\n");
     Stazione* st = cercaStazione(head, d_start);
+    printf("INFO: la stazione di partenza è st - %d, autonomia - %d\n", st->distanza, st->head->autonomia);
     if (st == NULL) {
+        printf("INFO: st è nulla, o non esiste o errore in cercaStazione\n");
         if(printf("nessun percorso\n")<0)return;
         return;
     }
@@ -404,6 +414,43 @@ void pianificaPercorso(Stazione** head, int d_start, int d_end) {
         if(printf("%d\n", d_start)<0) return;
         return;
     }
+    if(d_start<d_end){
+        printf("INFO: entrato in caso d_start<d_end\n");
+        int a = st->head->autonomia;
+        printf("INFO: post prima assegnazione autonomia\n");
+        Percorso* p=NULL;
+        printf("INFO: post inizializzazione percorso\n");
+        while(st != NULL && st->distanza<=d_end){
+            printf("INFO: in loop-> stazione: %d, autonomia maggiore: %d\n", st->distanza, st->head->autonomia);
+
+            if((st->next != NULL && st->next->distanza==d_end && a>= (st->next->distanza - st->distanza)) || ()){
+                printf("INFO: prossima stazione è quella finale\n");
+                aggiungiTappa(&p, st->next);
+                printf("INFO: aggiunta stazione finale\n");
+                stdoutPercorso(p);
+                deallocaPercorso(&p);
+                printf("INFO: fine deallocazione percorsi\n");
+                return;
+            }
+            printf("INFO: in loop-> pre-check autonomia\n");
+            if(a<st->head->autonomia){
+                printf("INFO: sostituzione auto\n");
+                a = st->head->autonomia;
+                aggiungiTappa(&p, st);
+            }
+            printf("INFO: in loop-> post check autonomia, attuale = %d\n", a);
+            a = a - (st->next->distanza - st->distanza);
+            if(a<0){
+                printf("nessun percorso\n");
+                return;
+            }
+            printf("INFO: nuova autonomia -> %d\n", a);
+            st=st->next;
+            printf("INFO: la prossima stazione è st - %d\n", st->distanza);
+        }
+        printf("nessun percorso\n");
+    }
+
 
     //TODO implementazione algoritmo di ricerca vero e proprio
 
