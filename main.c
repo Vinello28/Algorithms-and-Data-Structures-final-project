@@ -331,97 +331,28 @@ void aggiungiStazione(Stazione** testa, int distanza, int numeroAuto, int* auton
  * @return la testa della lista se modificata, altrimenti NULL;
  */
 void demolisciStazione(Stazione** head, int dist){
-    //TODO function debugging
-    printf("INFO: entrato in demolisciStazione\n");
-    Stazione* st = *head;
-
-    if (head == NULL) {
-        printf("INFO: testa stazione nulla\n");
-        // La lista è vuota o la stazione da eliminare è nulla
+    if (head==NULL) {
         int sentinel = printf("non demolita\n");
         if(sentinel <0) return;
         return;
     }
-    if(st->distanza==dist){
-        printf("INFO: stazione trovata, inizio rimozione...\n");
-        //Se la stazione da eliminare è la testa della lista
-        if (*head == st) *head = st->next;
+    Stazione* st = *head;
 
-        //Collega il nodo precedente al nodo successivo
-        if (st->prev != NULL) st->prev->next = st->next;
+    while (st != NULL && st->distanza != dist) st = st->next;
 
-        //Collega il nodo successivo al nodo precedente
-        if (st->next != NULL) st->next->prev = st->prev;
-
-        //Dealloca la memoria della stazione eliminata
-        deallocaAuto(&st->head);
-        free(st);
-
-        printf("INFO: stazione correttamente deallocata\n");
-
-        int sentinel = printf("demolita\n");
+    if (st == NULL) {
+        int sentinel = printf("non demolita\n");
         if(sentinel <0) return;
         return;
     }
-    if(st->next != NULL){
-        while((st->next != NULL && st->next->distanza<=dist) || (st->next==NULL && st->distanza<=dist)){ //TODO errore, non entra nel ciclo se stazione è a fine lista
-            printf("INFO: passa alla prossima stazione\n");
-            if(st->distanza==dist) {
-                printf("INFO: stazione trovata, inizio rimozione...\n");
-                //Se la stazione da eliminare è la testa della lista
-                if (*head == st) *head = st->next;
+    if (st == *head) *head = st->next;
+    if (st->prev != NULL) st->prev->next = st->next;
+    if (st->next != NULL) st->next->prev = st->prev;
 
-                //Collega il nodo precedente al nodo successivo
-                if (st->prev != NULL) st->prev->next = st->next;
-
-                //Collega il nodo successivo al nodo precedente
-                if (st->next != NULL) st->next->prev = st->prev;
-
-                //Dealloca la memoria della stazione eliminata
-                deallocaAuto(&st->head);
-                free(st);
-
-                printf("INFO: stazione correttamente deallocata\n");
-
-                int sentinel = printf("demolita\n");
-                if(sentinel <0) return;
-                return;
-            }
-            else st = st->next;
-        }
-        if(st->distanza==dist){                          //WARNING: modificato da qui
-            printf("INFO: stazione trovata\n");
-            *head = st->next;
-            deallocaAuto(&st->head);
-            free(st);
-            printf("INFO: stazione correttamente deallocata\n");
-            int sentinel = printf("demolita\n");
-            if(sentinel <0) return;
-            return;
-        }
-        else{
-            int sentinel = printf("non demolita\n");
-            if(sentinel <0) return;
-        }                                                //WARNING: a qui
-    }
-    else{
-        printf("INFO: la stazione si trova alla fine\n");
-
-        if(st->distanza==dist){
-            printf("INFO: stazione trovata\n");
-            *head = st->next;
-            deallocaAuto(&st->head);
-            free(st);
-            printf("INFO: stazione correttamente deallocata\n");
-            int sentinel = printf("demolita\n");
-            if(sentinel <0) return;
-            return;
-        }
-        else{
-            int sentinel = printf("non demolita\n");
-            if(sentinel <0) return;
-        }
-    }
+    deallocaAuto(&st->head);
+    free(st);
+    int sentinel = printf("demolita\n");
+    if(sentinel <0) return;
 }
 
 
