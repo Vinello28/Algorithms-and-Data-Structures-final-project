@@ -4,11 +4,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
 
 #define MAX_AUTO 512
+#define true 1
+#define false 0
 
-//TODO eliminare tutti i segmentation fault, finire gestione stazioni e pianificaPercorso
+//TODO: modificare pianifica percorso con il confronto di tutte le tappe possibili (utilizzando visited)
+//TODO: pensiero ultimo secondo==> probabilmente non funzionerà cambiare la logica, non è un albero.
 
 /**
  * Auto rappresentate dalla seguente struttura dati
@@ -24,6 +26,7 @@ typedef struct Auto{
 typedef struct Stazione{
     int distanza;
     int num_auto;
+    int visited;
     Auto *head;             //puntatore alla prima cella del vettore delle autonomie (una per auto)
     struct Stazione* next;
     struct Stazione* prev;
@@ -32,9 +35,14 @@ typedef struct Stazione{
 /**
  * Struttura dati usata per memorizzare le tappe del percorso
  */
-typedef struct Percorso{
+typedef struct Tappa{
     int distanza;
-    struct Percorso* next;
+    struct Tappa* next;
+}Tappa;
+
+typedef struct Percorso{
+    int n_tappe;
+    Tappa* tappe;
 }Percorso;
 
 /**
@@ -105,9 +113,9 @@ void deallocaStazioni(Stazione** head) {
  * Funzione che dealloca la lista di tappe (percorso migliore)
  * @param head testa del percorso
  */
-void deallocaPercorso(Percorso ** head) {
-    Percorso* attuale = *head;
-    Percorso* tmp;
+void deallocaTappa(Tappa** head) {
+    Tappa* attuale = *head;
+    Tappa* tmp;
 
     while (attuale != NULL) {
         tmp = attuale->next;
@@ -116,6 +124,7 @@ void deallocaPercorso(Percorso ** head) {
     }
     *head = NULL;
 }
+
 
 /**
  * Funzione che aggiunge un auto scorrendo le stazioni fino a cercare (se esiste) quella desiderata,
@@ -166,11 +175,12 @@ void aggiungiAuto(Stazione** head, int dist, int autonomia){
  * @param head testa della lista passata da cercaPercorso
  * @param st stazione da aggiungere
  */
-void aggiungiTappa(Percorso **head, Stazione* st){
-    Percorso* p = *head;
+void aggiungiTappa(Tappa **head, Stazione* st){
+    Tappa* p = *head;
+    st->visited = true;
     if (p == NULL) {
         //inserimento in testa
-        *head = malloc(sizeof(Percorso));
+        *head = malloc(sizeof(Tappa));
         (*head)->distanza = st->distanza;
         (*head)->next = NULL;
         return;
@@ -179,7 +189,7 @@ void aggiungiTappa(Percorso **head, Stazione* st){
         while (p->next != NULL) p = p->next;
 
         //inserimento in coda
-        p->next = malloc(sizeof(Percorso));
+        p->next = malloc(sizeof(Tappa));
         p->next->distanza = st->distanza;
         p->next->next = NULL;
     }
@@ -261,6 +271,7 @@ void aggiungiStazione(Stazione** testa, int distanza, int numeroAuto, int* auton
     Stazione* newstz = (Stazione*)malloc(sizeof(Stazione));
     newstz->distanza = distanza;
     newstz->num_auto = numeroAuto;
+    newstz->visited = false;
     newstz->head = NULL;
     newstz->prev = NULL;
     newstz->next = NULL;
@@ -391,7 +402,7 @@ Stazione* cercaStazione(Stazione** head, int dist) {
  * Funzione che si occupa di mandare in stdout il percorso ottimale
  * @param p testa della lista di tappe
  */
-void stdoutPercorso(Percorso* p) {
+void stdoutPercorso(Tappa* p) {
     while (p != NULL) {
         if(printf("%d ", p->distanza)<0)return;
         p = p->next;
@@ -399,6 +410,25 @@ void stdoutPercorso(Percorso* p) {
     if(printf("\n")<0)return;
 }
 
+/**
+ * Funzione che salva le sequenza di tappe percorribili ottimale
+ * @param p percorso ottimale (old)
+ * @param t possibile percorso ottimale (new)
+ */
+void confrontaPercorsi(Percorso* p, Tappa* t){
+    if(t==NULL) return;
+    Tappa* tmp = t;
+    int i = 0;
+    while (tmp!=NULL){
+        i++;
+        tmp = tmp->next;
+    }
+    if (i<p->n_tappe){
+        p->tappe=t;
+        p->n_tappe=i;
+        return;
+    }
+}
 
 /**
  * Principale funzione del programma, si occupa di cercare il percorso con meno tappe tra due stazioni date,
@@ -409,6 +439,7 @@ void stdoutPercorso(Percorso* p) {
  */
 void pianificaPercorso(Stazione** head, int d_start, int d_end) {
     Stazione* st = cercaStazione(head, d_start);
+    //TODO finire con controllo visited
     if (st == NULL) {
         if(printf("nessun percorso\n")<0)NULL;
         return;
@@ -420,20 +451,20 @@ void pianificaPercorso(Stazione** head, int d_start, int d_end) {
     if (d_start < d_end) {
         int a = 0;
         if (st->head != NULL) a = st->head->autonomia;
-        Percorso* p = NULL;
+        Tappa* p = NULL;
 
         if (st->distanza <= d_end) aggiungiTappa(&p, st);
 
         while (st != NULL && st->distanza <= d_end) {
-            if (st->next != NULL && st->next->distanza == d_end && a >= (st->next->distanza - st->distanza)) {
+            if (st->next != NULL && st->next->distanza == d_end && a >= (st->next->distanza - st->distanza) && st->visited==false) {
                 aggiungiTappa(&p, st->next);
                 stdoutPercorso(p);
-                deallocaPercorso(&p);
+                deallocaTappa(&p);
                 return;
             } else if (st->next == NULL && a >= 0 && st->distanza == d_end) {
                 aggiungiTappa(&p, st);
                 stdoutPercorso(p);
-                deallocaPercorso(&p);
+                deallocaTappa(&p);
                 return;
             }
             if (st->head != NULL) {
@@ -445,19 +476,15 @@ void pianificaPercorso(Stazione** head, int d_start, int d_end) {
             if (st->next != NULL) a -= (st->next->distanza - st->distanza);
             if (a < 0) {
                 if(printf("nessun percorso\n")<0)NULL;
-                deallocaPercorso(&p);
+                deallocaTappa(&p);
                 return;
             }
             if (st->next != NULL) st = st->next;
         }
         if(printf("nessun percorso\n")<0)NULL;
-        deallocaPercorso(&p);
+        deallocaTappa(&p);
     }
 }
-
-
-
-
 
 
 int main() {
