@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
 #define MAX_AUTO 512
 
@@ -42,15 +43,12 @@ typedef struct Percorso{
  * @param a autonomia (int)
  */
  void aggiungiAutoByDesc(Auto** testa, int a) {
-    // Creazione di una nuova auto
     Auto* nuovaAuto = malloc(sizeof(Auto));
     nuovaAuto->autonomia = a;
     nuovaAuto->next = NULL;
 
-    printf("INFO_FUN_addAutoDesc: pre-check testa\n");
     //Check testa
     if (*testa == NULL || a > (*testa)->autonomia) {
-        printf("INFO_FUN_addAutoDesc: sostituzione testa con nuova autonomia-> %d\n", a);
         nuovaAuto->next = *testa;
         *testa = nuovaAuto;
         return;
@@ -59,7 +57,6 @@ typedef struct Percorso{
     // Inserimento dell'auto nella lista in ordine decrescente di autonomia
     Auto* current = *testa;
     while (current->next != NULL && current->next->autonomia > a) {
-        printf("INFO_FUN_addAutoDesc: in loop auto-> a: %d\n", current->autonomia);
         current = current->next;
     }
     nuovaAuto->next = current->next;
@@ -171,13 +168,21 @@ void aggiungiAuto(Stazione** head, int dist, int autonomia){
  */
 void aggiungiTappa(Percorso **head, Stazione* st){
     Percorso* p = *head;
-    while(p->next != NULL){
-        p=p->next;
+    if (p == NULL) {
+        //inserimento in testa
+        *head = malloc(sizeof(Percorso));
+        (*head)->distanza = st->distanza;
+        (*head)->next = NULL;
+        return;
+    } else {
+        //scorre fino alla fine
+        while (p->next != NULL) p = p->next;
+
+        //inserimento in coda
+        p->next = malloc(sizeof(Percorso));
+        p->next->distanza = st->distanza;
+        p->next->next = NULL;
     }
-    Percorso* tmp = malloc(sizeof(Percorso));
-    tmp->distanza = st->distanza;
-    tmp->next=NULL;
-    p->next=tmp;
 }
 
 /**
@@ -365,20 +370,21 @@ void demolisciStazione(Stazione** head, int dist){
  * @param dist che identifica univocamente la stazione
  * @return stazione cercata
  */
-Stazione* cercaStazione(Stazione** head, int dist){
+Stazione* cercaStazione(Stazione** head, int dist) {
     Stazione* st = *head;
-    if(st->next!=NULL) {
+    if (st->next != NULL) {
         while (st->next->distanza <= dist && st->next != NULL) {
             if (st->distanza == dist) return st;
             st = st->next;
         }
-    }
-    else {
-        if(st->distanza==dist) return st;
+    } else {
+        if (st->distanza == dist) return st;
         else return NULL;
     }
+    if (st->distanza == dist) return st;
     return NULL;
 }
+
 
 
 /**
@@ -402,59 +408,53 @@ void stdoutPercorso(Percorso* p) {
  * @param d_end distanza stazione arrivo
  */
 void pianificaPercorso(Stazione** head, int d_start, int d_end) {
-    printf("INFO: entrato in pianifica percorso\n");
     Stazione* st = cercaStazione(head, d_start);
-    printf("INFO: la stazione di partenza è st - %d, autonomia - %d\n", st->distanza, st->head->autonomia);
     if (st == NULL) {
-        printf("INFO: st è nulla, o non esiste o errore in cercaStazione\n");
-        if(printf("nessun percorso\n")<0)return;
+        if(printf("nessun percorso\n")<0)NULL;
         return;
     }
     if (d_start == d_end) {
-        if(printf("%d\n", d_start)<0) return;
+        if(printf("%d\n", d_start)<0)NULL;
         return;
     }
-    if(d_start<d_end){
-        printf("INFO: entrato in caso d_start<d_end\n");
-        int a = st->head->autonomia;
-        printf("INFO: post prima assegnazione autonomia\n");
-        Percorso* p=NULL;
-        printf("INFO: post inizializzazione percorso\n");
-        while(st != NULL && st->distanza<=d_end){
-            printf("INFO: in loop-> stazione: %d, autonomia maggiore: %d\n", st->distanza, st->head->autonomia);
+    if (d_start < d_end) {
+        int a = 0;
+        if (st->head != NULL) a = st->head->autonomia;
+        Percorso* p = NULL;
 
-            if((st->next != NULL && st->next->distanza==d_end && a>= (st->next->distanza - st->distanza)) || ()){
-                printf("INFO: prossima stazione è quella finale\n");
+        if (st->distanza <= d_end) aggiungiTappa(&p, st);
+
+        while (st != NULL && st->distanza <= d_end) {
+            if (st->next != NULL && st->next->distanza == d_end && a >= (st->next->distanza - st->distanza)) {
                 aggiungiTappa(&p, st->next);
-                printf("INFO: aggiunta stazione finale\n");
                 stdoutPercorso(p);
                 deallocaPercorso(&p);
-                printf("INFO: fine deallocazione percorsi\n");
                 return;
-            }
-            printf("INFO: in loop-> pre-check autonomia\n");
-            if(a<st->head->autonomia){
-                printf("INFO: sostituzione auto\n");
-                a = st->head->autonomia;
+            } else if (st->next == NULL && a >= 0 && st->distanza == d_end) {
                 aggiungiTappa(&p, st);
-            }
-            printf("INFO: in loop-> post check autonomia, attuale = %d\n", a);
-            a = a - (st->next->distanza - st->distanza);
-            if(a<0){
-                printf("nessun percorso\n");
+                stdoutPercorso(p);
+                deallocaPercorso(&p);
                 return;
             }
-            printf("INFO: nuova autonomia -> %d\n", a);
-            st=st->next;
-            printf("INFO: la prossima stazione è st - %d\n", st->distanza);
+            if (st->head != NULL) {
+                if (a < st->head->autonomia) {
+                    if (st->head != NULL) a = st->head->autonomia;
+                    aggiungiTappa(&p, st);
+                }
+            }
+            if (st->next != NULL) a -= (st->next->distanza - st->distanza);
+            if (a < 0) {
+                if(printf("nessun percorso\n")<0)NULL;
+                deallocaPercorso(&p);
+                return;
+            }
+            if (st->next != NULL) st = st->next;
         }
-        printf("nessun percorso\n");
+        if(printf("nessun percorso\n")<0)NULL;
+        deallocaPercorso(&p);
     }
-
-
-    //TODO implementazione algoritmo di ricerca vero e proprio
-
 }
+
 
 
 
