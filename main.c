@@ -436,7 +436,7 @@ void scambiaPercorsi(Percorso** percorsoOttimale, Tappa* percorsoParziale) {
  * @param p_parziale percorso che si sta attualmente percorrendo
  * @param p_ottimale miglior percorso trovate fino all'istante attuale
  */
-void ricercaPercorsi(Stazione* st_corrente, int dist_final, int autonomia, Tappa* p_parziale, Percorso** p_ottimale) {
+void ricercaPercorsiInAvanti(Stazione* st_corrente, int dist_final, int autonomia, Tappa* p_parziale, Percorso** p_ottimale) {
     if (st_corrente->distanza + autonomia >= dist_final) {   //fine ricorsione poiché ho trovato l'ultima tappa del percorso
 
         Tappa* n_tappa = malloc(sizeof(Tappa));  //aggiunge stazione finale al percorso parziale
@@ -473,13 +473,15 @@ void ricercaPercorsi(Stazione* st_corrente, int dist_final, int autonomia, Tappa
         p_parziale = nuovaTappa;
 
         //ricorsione per stazioni successive
-        ricercaPercorsi(st_successiva, dist_final, n_autonomia, p_parziale, p_ottimale);
+        ricercaPercorsiInAvanti(st_successiva, dist_final, n_autonomia, p_parziale, p_ottimale);
 
         p_parziale = p_parziale->next;
         st_successiva = st_successiva->next;
     }
 }
 
+
+//TODO: ricerca percorsi all'indietro
 
 /**
  * Principale funzione del programma, si occupa di cercare il percorso con meno tappe tra due stazioni date,
@@ -489,11 +491,11 @@ void ricercaPercorsi(Stazione* st_corrente, int dist_final, int autonomia, Tappa
  * @param d_end distanza stazione arrivo
  */
 void pianificaPercorso(Stazione** head, int d_start, int d_end) {
-    // Trova le stazioni di partenza e arrivo
+    //trova le stazioni di partenza e arrivo
     Stazione* stazionePartenza = cercaStazione(head, d_start);
     Stazione* stazioneArrivo = cercaStazione(head, d_end);
 
-    // Controlla che le stazioni di partenza e arrivo siano valide
+    //controlla che le stazioni di partenza e arrivo siano valide
     if (stazionePartenza == NULL || stazioneArrivo == NULL) {
         if(printf("nessun percorso\n")<0) return;
         return;
@@ -511,8 +513,9 @@ void pianificaPercorso(Stazione** head, int d_start, int d_end) {
     nuovaTappa->next = percorsoParziale;
     percorsoParziale = nuovaTappa;
 
-    // Chiama la funzione ricorsiva per trovare il percorso ottimale
-    ricercaPercorsi(stazionePartenza, d_end, stazionePartenza->head->autonomia, percorsoParziale, &percorsoOttimale);
+    //chiama la funzione ricorsiva per trovare il percorso ottimale
+    ricercaPercorsiInAvanti(stazionePartenza, d_end, stazionePartenza->head->autonomia, percorsoParziale,
+                            &percorsoOttimale);
 
     if (percorsoOttimale==NULL || percorsoOttimale->n_tappe==10000) {
         if(printf("nessun percorso\n")<0) return;
