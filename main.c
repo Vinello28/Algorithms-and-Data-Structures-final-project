@@ -40,6 +40,7 @@ typedef struct Percorso{
     struct Percorso* next;
 }Percorso;
 
+
 /**
  * Funzione di inserimento che mantiene la lista ordinata per autonomia decrescente
  * @param st stazione alla quale aggiungere l'auto
@@ -57,7 +58,7 @@ typedef struct Percorso{
         return;
     }
 
-    // Inserimento dell'auto nella lista in ordine decrescente di autonomia
+    //inserimento per ordine decrescente di autonomia
     Auto* current = *testa;
     while (current->next != NULL && current->next->autonomia > a) {
         current = current->next;
@@ -68,10 +69,10 @@ typedef struct Percorso{
 
 
 /**
- * ausiliaria per ricerca percorso
- * @param a
- * @param b
- * @return
+ * funzione che restituisce il massimo tra due interi in ingresso
+ * @param a primo valore
+ * @param b secondo valore
+ * @return valore maggiore
  */
 int max(int a, int b) {
     return (a > b) ? a : b;
@@ -144,59 +145,30 @@ void aggiungiAuto(Stazione** head, int dist, int autonomia){
         if(st->distanza == dist){
             st->num_auto++;
             aggiungiAutoByDesc(&st->head, autonomia); //condiviso con funzione aggiungiStazione(...)
-            int sentinel = printf("aggiunta\n");
-            if(sentinel < 0) return;
+            if(printf("aggiunta\n")<0)return;
             return;
         }
         while((st->next != NULL && st->distanza<=dist) || (st->next==NULL && st->distanza==dist)){
             if(st->distanza==dist) {
                 if(st->num_auto+1<MAX_AUTO){
                     st->num_auto++;
-                    aggiungiAutoByDesc(&st->head, autonomia); //condiviso con funzione aggiungiStazione(...)
-                    int sentinel = printf("aggiunta\n");
-                    if(sentinel < 0) return;
+                    aggiungiAutoByDesc(&st->head, autonomia);
+                    if(printf("aggiunta\n")<0)return;
                     return;
                 } else {
-                    int sentinel = printf("non aggiunta\n");
-                    if(sentinel < 0) return;
+                    if(printf("non aggiunta\n")<0)return;
                     return;
                 }
             }
             else st = st->next;
         }
     } else if(st==NULL){
-        int sentinel = printf("non aggiunta\n");
-        if(sentinel < 0) return;
+        if(printf("non aggiunta\n")<0)return;
         return;
     }
-    int sentinel = printf("non aggiunta\n");
-    if(sentinel < 0) return;
+    if(printf("non aggiunta\n")<0)return;
 }
 
-
-/**
- * Funzione che si occupa di aggiungere una stazione al percorso in esame
- * @param head testa della lista passata da cercaPercorso
- * @param st stazione da aggiungere
- */
-void aggiungiTappa(Tappa **head, Stazione* st){
-    Tappa* p = *head;
-    if (p == NULL) {
-        //inserimento in testa
-        *head = malloc(sizeof(Tappa));
-        (*head)->distanza = st->distanza;
-        (*head)->next = NULL;
-        return;
-    } else {
-        //scorre fino alla fine
-        while (p->next != NULL) p = p->next;
-
-        //inserimento in coda
-        p->next = malloc(sizeof(Tappa));
-        p->next->distanza = st->distanza;
-        p->next->next = NULL;
-    }
-}
 
 /**
  * Funzione che elimina un auto dalla lista di una precisa stazione
@@ -213,23 +185,19 @@ void rottamaAuto(Stazione** head, int dist, int a){
                 Auto *tmp = st->head;
                 Auto *prev = NULL;
 
-                //ciclo di ricerca dell'auto
-                while (tmp != NULL && tmp->autonomia != a) {
+                while (tmp != NULL && tmp->autonomia != a) { //ricerca auto
                     prev = tmp;
                     tmp = tmp->next;
                 }
 
-                //se è stata trovata:
-                if (tmp != NULL) {
+                if (tmp != NULL) {        //se trovo auto
                     if (prev == NULL)st->head = tmp->next;
                     else prev->next = tmp->next;
                     free(tmp);
-                    int sentinel = printf("rottamata\n");
-                    if (sentinel < 0) return;
+                    if(printf("rottamata\n")<0)return;
                     return;
                 } else {
-                    int sentinel = printf("non rottamata\n");
-                    if (sentinel < 0) return;
+                    if(printf("non rottamata\n")<0)return;
                     return;
                 }
             } else st = st->next;
@@ -238,28 +206,23 @@ void rottamaAuto(Stazione** head, int dist, int a){
         Auto *tmp = st->head;
         Auto *prev = NULL;
 
-        //ciclo di ricerca dell'auto
-        while (tmp != NULL && tmp->autonomia != a) {
+        while (tmp != NULL && tmp->autonomia != a) { //ricerca auto
             prev = tmp;
             tmp = tmp->next;
         }
 
-        //se è stata trovata:
-        if (tmp != NULL) {
+        if (tmp != NULL) {    //se auto trovata
             if (prev == NULL)st->head = tmp->next;
             else prev->next = tmp->next;
             free(tmp);
-            int sentinel = printf("rottamata\n");
-            if (sentinel < 0) return;
+            if(printf("rottamata\n")<0)return;
             return;
         } else {
-            int sentinel = printf("non rottamata\n");
-            if (sentinel < 0) return;
+            if(printf("non rottamata\n")<0)return;
             return;
         }
     }
-    int sentinel = printf("non rottamata\n");
-    if (sentinel < 0) return;
+    if(printf("non rottamata\n")<0)return;
 }
 
 
@@ -271,17 +234,16 @@ void rottamaAuto(Stazione** head, int dist, int a){
  * @param v_a  puntatore al vettore delle automobili
  */
 void aggiungiStazione(Stazione** testa, int distanza, int numeroAuto, int* autonomie) {
-    Stazione* newstz = (Stazione*)malloc(sizeof(Stazione));
-    newstz->distanza = distanza;
-    newstz->num_auto = numeroAuto;
-    newstz->head = NULL;
-    newstz->prev = NULL;
-    newstz->next = NULL;
+    Stazione* n_st = (Stazione*)malloc(sizeof(Stazione));
+    n_st->distanza = distanza;
+    n_st->num_auto = numeroAuto;
+    n_st->head = NULL;
+    n_st->prev = NULL;
+    n_st->next = NULL;
 
     if(numeroAuto>=MAX_AUTO){
-        free(newstz);
-        int sentinel = printf("non aggiunta\n");
-        if(sentinel<0)return;
+        free(n_st);
+        if(printf("non aggiunta\n")<0)return;
         return;
     }
 
@@ -290,55 +252,49 @@ void aggiungiStazione(Stazione** testa, int distanza, int numeroAuto, int* auton
         Auto* nuovaAuto = (Auto*)malloc(sizeof(Auto));
         nuovaAuto->autonomia = autonomie[i];
         nuovaAuto->next = NULL;
-        aggiungiAutoByDesc(&newstz->head, autonomie[i]);
+        aggiungiAutoByDesc(&n_st->head, autonomie[i]);
     }
 
     // Inserimento della stazione nella lista in ordine crescente di distanza
     if (*testa == NULL) {
-        *testa = newstz;
-        int sentinel = printf("aggiunta\n");
-        if(sentinel<0)return;
+        *testa = n_st;
+        if(printf("aggiunta\n")<0)return;
         return;
 
     } else if (distanza < (*testa)->distanza) {
-        newstz->next = *testa;
-        (*testa)->prev = newstz;
-        *testa = newstz;
-        int sentinel = printf("aggiunta\n");
-        if(sentinel<0)return;
+        n_st->next = *testa;
+        (*testa)->prev = n_st;
+        *testa = n_st;
+        if(printf("aggiunta\n")<0)return;
         return;
     } else {
         Stazione* current = *testa;
         while (current != NULL) {
             if (current->distanza == distanza) {
-                int sentinel = printf("non aggiunta\n");
-                if (sentinel < 0) return;
+                if(printf("non aggiunta\n")<0)return;
                 return;
             }
             if (current->next != NULL && current->next->distanza>distanza){ //inserimento tra due stazioni
-                current->next->prev = newstz;
-                newstz->next=current->next;
-                newstz->prev=current;
-                current->next=newstz;
-                int sentinel = printf("aggiunta\n");
-                if(sentinel<0)return;
+                current->next->prev = n_st;
+                n_st->next=current->next;
+                n_st->prev=current;
+                current->next=n_st;
+                if(printf("aggiunta\n")<0)return;
                 return;
             }
             if(current->next==NULL && current->distanza<distanza){
-                newstz->prev=current;
-                current->next=newstz;
-                newstz->next=NULL;
-                int sentinel = printf("aggiunta\n");
-                if(sentinel<0)return;
+                n_st->prev=current;
+                current->next=n_st;
+                n_st->next=NULL;
+                if(printf("aggiunta\n")<0)return;
                 return;
             }
             current = current->next;
         }
         if(current->distanza == distanza){
-            deallocaAuto(&newstz->head);
-            free(newstz);
-            int sentinel = printf("non aggiunta\n");
-            if(sentinel<0)return;
+            deallocaAuto(&n_st->head);
+            free(n_st);
+            if(printf("non aggiunta\n")<0)return;
             return;
         }
     }
@@ -353,8 +309,7 @@ void aggiungiStazione(Stazione** testa, int distanza, int numeroAuto, int* auton
  */
 void demolisciStazione(Stazione** head, int dist){
     if (head==NULL) {
-        int sentinel = printf("non demolita\n");
-        if(sentinel <0) return;
+        if(printf("non demolita\n")<0)return;
         return;
     }
     Stazione* st = *head;
@@ -362,8 +317,7 @@ void demolisciStazione(Stazione** head, int dist){
     while (st != NULL && st->distanza != dist) st = st->next;
 
     if (st == NULL) {
-        int sentinel = printf("non demolita\n");
-        if(sentinel <0) return;
+        if(printf("non demolita\n")<0)return;
         return;
     }
     if (st == *head) *head = st->next;
@@ -372,8 +326,7 @@ void demolisciStazione(Stazione** head, int dist){
 
     deallocaAuto(&st->head);
     free(st);
-    int sentinel = printf("demolita\n");
-    if(sentinel <0) return;
+    if(printf("demolita\n")<0)return;
 }
 
 
@@ -406,15 +359,19 @@ void stdoutPercorso(Percorso** percorso) {
         if (printf("nessun percorso\n") < 0) return;
         return;
     }
-
+    int i = (*percorso)->n_tappe;
+    int distanze[i];
     Tappa* p = (*percorso)->tappe;
-    while (p != NULL) {
-        if (printf("%d ", p->distanza) < 0) return;
-        p = p->next;
+
+    while(p!=NULL){
+        distanze[i-1] = p->distanza;
+        i--;
+        p=p->next;
     }
+    for(int j = 0; j<(*percorso)->n_tappe; j++)if (printf("%d ", distanze[j]) < 0) return;
     if (printf("\n") < 0) return;
 
-    // Dealloca il percorso dopo averlo stampato
+    //deallocazione percorso
     deallocaTappa(&((*percorso)->tappe));
     free(*percorso);
     *percorso = NULL;
@@ -422,9 +379,9 @@ void stdoutPercorso(Percorso** percorso) {
 
 
 /**
- * Funzione che salva le sequenza di tappe percorribili ottimale
- * @param p percorso ottimale (old)
- * @param t possibile percorso ottimale (new)
+ * Funzione che copia le sequenza di tappe percorribili ottimale
+ * @param source testa dell'elenco di tappe da copiare
+ * @return copia del percorso
  */
 Tappa* copiaPercorso(Tappa* source) {
     if (source == NULL) {
@@ -437,7 +394,10 @@ Tappa* copiaPercorso(Tappa* source) {
     return newTappa;
 }
 
-// Funzione che dealloca una lista di tappe
+/**
+ * Data la testa della lista di tappe di un percorso la dealloca
+ * @param head testa lista (contenuta in un percorso)
+ */
 void deallocaPercorso(Tappa* head) {
     while (head != NULL) {
         Tappa* tmp = head;
@@ -446,7 +406,11 @@ void deallocaPercorso(Tappa* head) {
     }
 }
 
-// Funzione che scambia i percorsi in modo corretto
+/**
+ * Funzione che sostiuisce il vecchio percorso ottimale con quello nuovo (ex parziale)
+ * @param percorsoOttimale percorso che sarà sostituito
+ * @param percorsoParziale nuovo percorso ottimale
+ */
 void scambiaPercorsi(Percorso** percorsoOttimale, Tappa* percorsoParziale) {
     if (*percorsoOttimale != NULL) {
         deallocaPercorso((*percorsoOttimale)->tappe);
@@ -466,57 +430,53 @@ void scambiaPercorsi(Percorso** percorsoOttimale, Tappa* percorsoParziale) {
 
 /**
  * Funzione per ricerca ricorsiva dei percorsi ottimali, che vengono poi aggiunti in apposita struttura dati
- * @param stazioneCorrente nella prima iterazione è quella di partenza, poi viene usata per tenere traccia per st. corrente
- * @param distanzaFinale distanza alla quale deve "arrivare" l'utente
+ * @param st_corrente nella prima iterazione è quella di partenza, poi viene usata per tenere traccia per st. corrente
+ * @param dist_final distanza alla quale deve "arrivare" l'utente
  * @param autonomia dell'auto attualmente in uso
- * @param percorsoParziale percorso che si sta attualmente percorrendo
- * @param percorsoOttimale miglior percorso trovate fino all'istante attuale
+ * @param p_parziale percorso che si sta attualmente percorrendo
+ * @param p_ottimale miglior percorso trovate fino all'istante attuale
  */
-void ricercaPercorsi(Stazione* stazioneCorrente, int distanzaFinale, int autonomia, Tappa* percorsoParziale, Percorso** percorsoOttimale) {
-    if (stazioneCorrente->distanza + autonomia >= distanzaFinale) {
-        // Aggiungi la stazione al percorso parziale
-        Tappa* nuovaTappa = malloc(sizeof(Tappa));
-        nuovaTappa->distanza = distanzaFinale;
-        nuovaTappa->next = percorsoParziale;
-        percorsoParziale = nuovaTappa;
+void ricercaPercorsi(Stazione* st_corrente, int dist_final, int autonomia, Tappa* p_parziale, Percorso** p_ottimale) {
+    if (st_corrente->distanza + autonomia >= dist_final) {   //fine ricorsione poiché ho trovato l'ultima tappa del percorso
+
+        Tappa* n_tappa = malloc(sizeof(Tappa));  //aggiunge stazione finale al percorso parziale
+        n_tappa->distanza = dist_final;
+        n_tappa->next = p_parziale;
+        p_parziale = n_tappa;
 
         int tappe = 0;
-        Tappa* tmp= percorsoParziale;
-        while(tmp!=NULL){
+        Tappa* tmp= p_parziale;
+        while(tmp!=NULL){      //conta le tappe
             tappe++;
             tmp = tmp->next;
         }
-
-        if (tappe < (*percorsoOttimale)->n_tappe) scambiaPercorsi(percorsoOttimale, percorsoParziale);
+        if (tappe < (*p_ottimale)->n_tappe) scambiaPercorsi(p_ottimale, p_parziale);
         return;
     }
-    //Condizione di uscita: la stazione corrente è l'ultima stazione dell'autostrada
-    if (stazioneCorrente->next == NULL) return;
-    //Condizione di uscita: la stazione corrente non ha auto o tutte le auto hanno autonomia 0
-    if (stazioneCorrente->head == NULL || stazioneCorrente->head->autonomia == 0) return;
+    //se stazione corrente è ultima stazione dell'autostrada
+    if (st_corrente->next == NULL) return;
+    //se stazione corrente non ha auto o tutte le auto hanno autonomia nulla
+    if (st_corrente->head == NULL || st_corrente->head->autonomia == 0) return;
 
-    Stazione* stazioneSuccessiva = stazioneCorrente->next;
-    while (stazioneSuccessiva != NULL && stazioneSuccessiva->distanza <= stazioneCorrente->distanza + autonomia) {
-        int nuovaAutonomia = autonomia - (stazioneSuccessiva->distanza - stazioneCorrente->distanza);
+    Stazione* st_successiva = st_corrente->next;
+    while (st_successiva != NULL && st_successiva->distanza <= st_corrente->distanza + autonomia) {
+        int n_autonomia = autonomia - (st_successiva->distanza - st_corrente->distanza);
 
-        // Controlla se possiamo aggiungere l'auto con la maggiore autonomia disponibile
-        Auto* autoCorrente = stazioneSuccessiva->head;
-        if (autoCorrente != NULL) nuovaAutonomia = max(nuovaAutonomia, autoCorrente->autonomia);
+        //check cambio auto
+        Auto* auto_attuale = st_successiva->head;
+        if (auto_attuale != NULL) n_autonomia = max(n_autonomia, auto_attuale->autonomia);
 
-        // Aggiungi la stazione al percorso parziale
+        //aggiunge stazione in percorso parziale
         Tappa* nuovaTappa = malloc(sizeof(Tappa));
-        nuovaTappa->distanza = stazioneSuccessiva->distanza;
-        nuovaTappa->next = percorsoParziale;
-        percorsoParziale = nuovaTappa;
+        nuovaTappa->distanza = st_successiva->distanza;
+        nuovaTappa->next = p_parziale;
+        p_parziale = nuovaTappa;
 
-        // Chiamata ricorsiva per esplorare le stazioni successive
-        ricercaPercorsi(stazioneSuccessiva, distanzaFinale, nuovaAutonomia, percorsoParziale, percorsoOttimale);
+        //ricorsione per stazioni successive
+        ricercaPercorsi(st_successiva, dist_final, n_autonomia, p_parziale, p_ottimale);
 
-        // Rimuovi l'ultima tappa per provare altre possibilità
-        percorsoParziale = percorsoParziale->next;
-
-        // Passa alla stazione successiva
-        stazioneSuccessiva = stazioneSuccessiva->next;
+        p_parziale = p_parziale->next;
+        st_successiva = st_successiva->next;
     }
 }
 
@@ -539,13 +499,13 @@ void pianificaPercorso(Stazione** head, int d_start, int d_end) {
         return;
     }
 
-    //Crea il percorso ottimale e il percorso parziale
+    //allocazione percorso ottimale e parziale
     Percorso* percorsoOttimale = malloc(sizeof(Percorso));
-    percorsoOttimale->n_tappe = 10000;
+    percorsoOttimale->n_tappe = 10000000;
     percorsoOttimale->tappe = NULL;
     Tappa* percorsoParziale = NULL;
 
-    // Aggiungi la stazione al percorso parziale
+    //allocazione prima tappa del percorso parziale prima tappa (partenza)
     Tappa* nuovaTappa = malloc(sizeof(Tappa));
     nuovaTappa->distanza = stazionePartenza->distanza;
     nuovaTappa->next = percorsoParziale;
@@ -559,11 +519,7 @@ void pianificaPercorso(Stazione** head, int d_start, int d_end) {
         return;
     }
 
-    // Stampa il percorso ottimale
-    stdoutPercorso(&percorsoOttimale);
-
-    // Dealloca il percorso ottimale
-    deallocaTappa(&percorsoOttimale->tappe);
+    stdoutPercorso(&percorsoOttimale); //stdout del percorso migliore
     free(percorsoOttimale);
 }
 
