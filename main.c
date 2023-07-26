@@ -109,6 +109,7 @@ void deallocaStazioni(Stazione** head) {
         free(attuale);
         attuale = tmp;
     }
+    *head = NULL;
 }
 
 
