@@ -576,7 +576,7 @@ void pianificaPercorso(Stazione** head, int d_start, int d_end) {
     }
     stdoutPercorso(&percorsoOttimale); //stdout del percorso migliore
     free(percorsoOttimale);
-    free(nuovaTappa); //TODO verificare se necessario
+    free(nuovaTappa);
 }
 
 
