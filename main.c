@@ -109,7 +109,6 @@ void deallocaStazioni(Stazione** head) {
         free(attuale);
         attuale = tmp;
     }
-    *head = NULL;
 }
 
 
@@ -462,8 +461,7 @@ void ricercaPercorsiInAvanti(Stazione* st_corrente, int dist_final, int autonomi
         int n_autonomia = autonomia - (st_successiva->distanza - st_corrente->distanza);
 
         //check cambio auto
-        Auto* auto_attuale = st_successiva->head;
-        if (auto_attuale != NULL) n_autonomia = max(n_autonomia, auto_attuale->autonomia);
+        if(st_successiva->head != NULL)n_autonomia = max(n_autonomia, st_successiva->head->autonomia);
 
         //aggiunge stazione in percorso parziale
         Tappa* nuovaTappa = malloc(sizeof(Tappa));
@@ -514,8 +512,7 @@ void ricercaPercorsiAllIndietro(Stazione* st_corrente, int dist_final, int auton
         int n_autonomia = autonomia - (st_corrente->distanza - st_successiva->distanza);
 
         //check cambio auto
-        Auto* auto_attuale = st_successiva->head;
-        if (auto_attuale != NULL) n_autonomia = max(n_autonomia, auto_attuale->autonomia);
+        if(st_successiva->head != NULL)n_autonomia = max(n_autonomia, st_successiva->head->autonomia);
 
         //aggiunge stazione in percorso parziale
         Tappa* nuovaTappa = malloc(sizeof(Tappa));
