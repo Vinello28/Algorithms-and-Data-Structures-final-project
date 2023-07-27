@@ -36,6 +36,7 @@ typedef struct Tappa{
 
 typedef struct Percorso{
     int n_tappe;
+    int coeff_dist;
     Tappa* tappe;
 }Percorso;
 
@@ -422,6 +423,7 @@ void scambiaPercorsi(Percorso** percorsoOttimale, Tappa* percorsoParziale) {
     Tappa* t = (*percorsoOttimale)->tappe;
     while (t != NULL) {
         (*percorsoOttimale)->n_tappe++;
+        (*percorsoOttimale)->coeff_dist += t->distanza;
         t = t->next;
     }
 }
@@ -444,12 +446,15 @@ void ricercaPercorsiInAvanti(Stazione* st_corrente, int dist_final, int autonomi
         p_parziale = n_tappa;
 
         int tappe = 0;
+        int tmp_coeff = 0;
         Tappa* tmp= p_parziale;
         while(tmp!=NULL){      //conta le tappe
             tappe++;
+            tmp_coeff+=tmp->distanza;
             tmp = tmp->next;
         }
         if (tappe < (*p_ottimale)->n_tappe) scambiaPercorsi(p_ottimale, p_parziale);
+        if (tappe == (*p_ottimale)->n_tappe && tmp_coeff<(*p_ottimale)->coeff_dist) scambiaPercorsi(p_ottimale, p_parziale);
         return;
     }
     //se stazione corrente è ultima stazione dell'autostrada
@@ -495,12 +500,15 @@ void ricercaPercorsiAllIndietro(Stazione* st_corrente, int dist_final, int auton
         p_parziale = n_tappa;
 
         int tappe = 0;
+        int tmp_coeff=0;
         Tappa* tmp= p_parziale;
         while(tmp!=NULL){      //conta le tappe
             tappe++;
+            tmp_coeff+=tmp->distanza;
             tmp = tmp->next;
         }
         if (tappe < (*p_ottimale)->n_tappe) scambiaPercorsi(p_ottimale, p_parziale);
+        if (tappe == (*p_ottimale)->n_tappe && tmp_coeff<(*p_ottimale)->coeff_dist) scambiaPercorsi(p_ottimale, p_parziale);
         return;
     }
     //se stazione corrente è prima stazione dell'autostrada
