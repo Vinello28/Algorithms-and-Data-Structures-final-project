@@ -107,6 +107,7 @@ void deallocaStazioni(Stazione** head) {
     while (attuale != NULL) {
         tmp = attuale->next;
         deallocaAuto(&attuale->head);
+        attuale->head = NULL;
         free(attuale);
         attuale = tmp;
     }
@@ -616,9 +617,9 @@ int main() {
         if(strncmp(input, "pianifica-percorso", strlen("pianifica-percorso"))==0) {
             int start, end;
             if(fscanf(source, "%d %d", &start, &end)!=EOF) pianificaPercorso(&head, start, end);
+
         }
     }
-
     deallocaStazioni(&head);
     return 0;
 }
