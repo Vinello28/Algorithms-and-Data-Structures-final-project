@@ -11,7 +11,7 @@
  * Auto rappresentate dalla seguente struttura dati
  */
 typedef struct Auto{
-    int autonomia;
+    unsigned int autonomia;
     struct Auto* next;
 }Auto;
 
@@ -19,8 +19,8 @@ typedef struct Auto{
  * l'autostrada è rappresentata da una lista doppiamente concatenata di stazioni
  */
 typedef struct Stazione{
-    int distanza;
-    int num_auto;
+    unsigned int distanza;
+    unsigned int num_auto;
     Auto *head;             //puntatore alla prima cella del vettore delle autonomie (una per auto)
     struct Stazione* next;
     struct Stazione* prev;
@@ -30,13 +30,13 @@ typedef struct Stazione{
  * Struttura dati usata per memorizzare le tappe del percorso
  */
 typedef struct Tappa{
-    int distanza;
+    unsigned int distanza;
     struct Tappa* next;
 }Tappa;
 
 typedef struct Percorso{
-    int n_tappe;
-    int coeff_dist;
+    unsigned int n_tappe;
+    unsigned int coeff_dist;
     Tappa* tappe;
 }Percorso;
 
@@ -74,8 +74,12 @@ typedef struct Percorso{
  * @param b secondo valore
  * @return valore maggiore
  */
-int max(int a, int b) {
-    return (a > b) ? a : b;
+unsigned int max(unsigned int a, unsigned int b) {
+    if (a > b) {
+        return a;
+    } else {
+        return b;
+    }
 }
 
 
@@ -234,7 +238,7 @@ void rottamaAuto(Stazione** head, int dist, int a){
  * @param n_a  numero di automobili presenti
  * @param v_a  puntatore al vettore delle automobili
  */
-void aggiungiStazione(Stazione** testa, int distanza, int numeroAuto, int* autonomie) {
+void aggiungiStazione(Stazione** testa, unsigned int distanza, unsigned int numeroAuto, int* autonomie) {
     Stazione* n_st = (Stazione*)malloc(sizeof(Stazione));
     n_st->distanza = distanza;
     n_st->num_auto = numeroAuto;
@@ -308,7 +312,7 @@ void aggiungiStazione(Stazione** testa, int distanza, int numeroAuto, int* auton
  * @param dist della stazione da eliminare
  * @return la testa della lista se modificata, altrimenti NULL;
  */
-void demolisciStazione(Stazione** head, int dist){
+void demolisciStazione(Stazione** head, unsigned int dist){
     if (head==NULL) {
         if(printf("non demolita\n")<0)return;
         return;
@@ -337,7 +341,7 @@ void demolisciStazione(Stazione** head, int dist){
  * @param dist che identifica univocamente la stazione
  * @return stazione cercata
  */
-Stazione* cercaStazione(Stazione** head, int dist) {
+Stazione* cercaStazione(Stazione** head, unsigned int dist) {
     Stazione* st = *head;
     while (st != NULL) {
         if (st->distanza == dist) return st;
@@ -360,8 +364,8 @@ void stdoutPercorso(Percorso** percorso) {
         if (printf("nessun percorso\n") < 0) return;
         return;
     }
-    int i = (*percorso)->n_tappe;
-    int distanze[i];
+    unsigned int i = (*percorso)->n_tappe;
+    unsigned int distanze[i];
     Tappa* p = (*percorso)->tappe;
 
     while(p!=NULL){
@@ -384,14 +388,15 @@ void stdoutPercorso(Percorso** percorso) {
  * @param source testa dell'elenco di tappe da copiare
  * @return copia del percorso
  */
-Tappa* copiaPercorso(Tappa* source) {
+Tappa* copiaPercorso(Tappa** p) {
+    Tappa* source = *p;
     if (source == NULL) {
         return NULL;
     }
 
     Tappa* newTappa = malloc(sizeof(Tappa));
     newTappa->distanza = source->distanza;
-    newTappa->next = copiaPercorso(source->next);
+    newTappa->next = copiaPercorso(&source->next);
     return newTappa;
 }
 
@@ -399,7 +404,8 @@ Tappa* copiaPercorso(Tappa* source) {
  * Data la testa della lista di tappe di un percorso la dealloca
  * @param head testa lista (contenuta in un percorso)
  */
-void deallocaPercorso(Tappa* head) {
+void deallocaPercorso(Tappa** t) {
+    Tappa* head = *t;
     while (head != NULL) {
         Tappa* tmp = head;
         head = head->next;
@@ -412,14 +418,15 @@ void deallocaPercorso(Tappa* head) {
  * @param percorsoOttimale percorso che sarà sostituito
  * @param percorsoParziale nuovo percorso ottimale
  */
-void scambiaPercorsi(Percorso** percorsoOttimale, Tappa* percorsoParziale) {
+void scambiaPercorsi(Percorso** percorsoOttimale, Tappa** percorsoParziale) {
     if (*percorsoOttimale != NULL) {
-        deallocaPercorso((*percorsoOttimale)->tappe);
+        deallocaPercorso(&(*percorsoOttimale)->tappe);
         free(*percorsoOttimale);
+        *percorsoOttimale = NULL;
     }
 
     *percorsoOttimale = malloc(sizeof(Percorso));
-    (*percorsoOttimale)->n_tappe = 0;
+    //(*percorsoOttimale)->n_tappe = 0;
     (*percorsoOttimale)->tappe = copiaPercorso(percorsoParziale);
     Tappa* t = (*percorsoOttimale)->tappe;
     while (t != NULL) {
@@ -448,14 +455,15 @@ void ricercaPercorsiInAvanti(Stazione* st_corrente, int dist_final, int autonomi
 
         int tappe = 0;
         int tmp_coeff = 0;
-        Tappa* tmp= p_parziale;
+        Tappa* tmp = p_parziale;
         while(tmp!=NULL){      //conta le tappe
             tappe++;
             tmp_coeff+=tmp->distanza;
             tmp = tmp->next;
         }
-        if (tappe < (*p_ottimale)->n_tappe) scambiaPercorsi(p_ottimale, p_parziale);
-        if (tappe == (*p_ottimale)->n_tappe && tmp_coeff<(*p_ottimale)->coeff_dist) scambiaPercorsi(p_ottimale, p_parziale);
+        if (tappe < (*p_ottimale)->n_tappe) scambiaPercorsi(p_ottimale, &p_parziale);
+        if (tappe == (*p_ottimale)->n_tappe && tmp_coeff<(*p_ottimale)->coeff_dist) scambiaPercorsi(p_ottimale, &p_parziale);
+
         return;
     }
     //se stazione corrente è ultima stazione dell'autostrada
@@ -508,8 +516,9 @@ void ricercaPercorsiAllIndietro(Stazione* st_corrente, int dist_final, int auton
             tmp_coeff+=tmp->distanza;
             tmp = tmp->next;
         }
-        if (tappe < (*p_ottimale)->n_tappe) scambiaPercorsi(p_ottimale, p_parziale);
-        if (tappe == (*p_ottimale)->n_tappe && tmp_coeff<(*p_ottimale)->coeff_dist) scambiaPercorsi(p_ottimale, p_parziale);
+        if (tappe < (*p_ottimale)->n_tappe) scambiaPercorsi(p_ottimale, &p_parziale);
+        if (tappe == (*p_ottimale)->n_tappe && tmp_coeff<(*p_ottimale)->coeff_dist) scambiaPercorsi(p_ottimale, &p_parziale);
+
         return;
     }
     //se stazione corrente è prima stazione dell'autostrada
