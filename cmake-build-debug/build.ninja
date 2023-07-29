@@ -51,7 +51,7 @@ build cmake_object_order_depends_target_Progetto: phony || CMakeFiles/Progetto.d
 
 build CMakeFiles/Progetto.dir/main.c.o: C_COMPILER__Progetto_Debug /Users/gabrielevianello/Documents/Algoritmi$ e$ Strutture$ Dati/Progetto/main.c || cmake_object_order_depends_target_Progetto
   DEP_FILE = CMakeFiles/Progetto.dir/main.c.o.d
-  FLAGS = -Wall -Werror -std=gnu11 -O2 -pipe -g  -g -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX13.3.sdk -fcolor-diagnostics -std=gnu11
+  FLAGS = -Wall -Werror -std=gnu11 -O2 -pipe -g -fsanitize=address  -g -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX13.3.sdk -fcolor-diagnostics -std=gnu11
   OBJECT_DIR = CMakeFiles/Progetto.dir
   OBJECT_FILE_DIR = CMakeFiles/Progetto.dir
 
@@ -64,7 +64,7 @@ build CMakeFiles/Progetto.dir/main.c.o: C_COMPILER__Progetto_Debug /Users/gabrie
 # Link the executable Progetto
 
 build Progetto: C_EXECUTABLE_LINKER__Progetto_Debug CMakeFiles/Progetto.dir/main.c.o
-  FLAGS = -Wall -Werror -std=gnu11 -O2 -pipe -g  -g -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX13.3.sdk
+  FLAGS = -Wall -Werror -std=gnu11 -O2 -pipe -g -fsanitize=address  -g -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX13.3.sdk
   OBJECT_DIR = CMakeFiles/Progetto.dir
   POST_BUILD = :
   PRE_LINK = :
