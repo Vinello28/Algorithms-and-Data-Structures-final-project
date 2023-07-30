@@ -385,14 +385,10 @@ void stdoutPercorso(Percorso** percorso) {
  * @return copia del percorso
  */
 Tappa* copiaPercorso(Tappa** p) {
-    Tappa* source = *p;
-    if (source == NULL) {
-        return NULL;
-    }
-
+    if ((*p) == NULL) return NULL;
     Tappa* newTappa = malloc(sizeof(Tappa));
-    newTappa->distanza = source->distanza;
-    newTappa->next = copiaPercorso(&source->next);
+    newTappa->distanza = (*p)->distanza;
+    newTappa->next = copiaPercorso(&(*p)->next);
     return newTappa;
 }
 
@@ -508,6 +504,10 @@ void ricercaPercorsiInAvanti(Stazione* st_corrente, unsigned int dist_final, uns
  * @param p_ottimale miglior percorso trovate fino all'istante attuale
  */
 void ricercaPercorsiAllIndietro(Stazione* st_corrente, unsigned int dist_final, unsigned int autonomia, Tappa* p_parziale, Percorso** p_ottimale) {
+
+    if (st_corrente->prev == NULL) return;   //se stazione corrente è prima stazione dell'autostrada
+    if (st_corrente->head == NULL || st_corrente->head->autonomia == 0) return; //se stazione corrente non ha auto o tutte le auto hanno autonomia nulla
+
     Tappa* tmp = p_parziale;
     int i = 0;
     while(tmp!= NULL){
@@ -536,10 +536,6 @@ void ricercaPercorsiAllIndietro(Stazione* st_corrente, unsigned int dist_final, 
 
         return;
     }
-    //se stazione corrente è prima stazione dell'autostrada
-    if (st_corrente->prev == NULL) return;
-    //se stazione corrente non ha auto o tutte le auto hanno autonomia nulla
-    if (st_corrente->head == NULL || st_corrente->head->autonomia == 0) return;
 
     Stazione* st_successiva = st_corrente->prev;
     while (st_successiva != NULL && st_successiva->distanza >= st_corrente->distanza - autonomia) {
@@ -600,15 +596,17 @@ void pianificaPercorso(Stazione** head, unsigned int d_start, unsigned int d_end
     //chiama la funzione ricorsiva per trovare il percorso ottimale
     if(d_end>d_start) ricercaPercorsiInAvanti(stazionePartenza, d_end, stazionePartenza->head->autonomia, percorsoParziale,&percorsoOttimale);
     if(d_end<d_start) ricercaPercorsiAllIndietro(stazionePartenza, d_end, stazionePartenza->head->autonomia, percorsoParziale,&percorsoOttimale);
+    deallocaTappa(&percorsoParziale);
+    free(percorsoParziale);
 
     if (percorsoOttimale==NULL || percorsoOttimale->n_tappe==1000) {
+        deallocaPercorso(&percorsoOttimale->tappe); //stdout del percorso migliore
+        free(percorsoOttimale);
         if(printf("nessun percorso\n")<0) return;
         return;
     }
     stdoutPercorso(&percorsoOttimale); //stdout del percorso migliore
     free(percorsoOttimale);
-    deallocaTappa(&percorsoParziale);
-    free(percorsoParziale);
 }
 
 
@@ -623,7 +621,7 @@ int main() {
             unsigned int dist, n_a;
             if(fscanf(source, "%d %d", &dist, &n_a)!=EOF){
                 unsigned int a[512];
-                for(int i = 0; i < n_a; i++)if(fscanf(source, "%d", &a[i])!=EOF)continue;
+                for(int i = 0; i < n_a; i++)if(fscanf(source, " %d", &a[i])!=EOF)continue;
                 aggiungiStazione(&head, dist, n_a, a);
             }
         }
