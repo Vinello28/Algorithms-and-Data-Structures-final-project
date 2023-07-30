@@ -450,6 +450,7 @@ void ricercaPercorsiInAvanti(Stazione* st_corrente, unsigned int dist_final, uns
         i++;
     }
     if(i > (*p_ottimale)->n_tappe)return;
+    if(p_parziale->distanza>dist_final)return;
 
     if (st_corrente->distanza + autonomia >= dist_final) {   //fine ricorsione poiché ho trovato l'ultima tappa del percorso
 
@@ -514,6 +515,7 @@ void ricercaPercorsiAllIndietro(Stazione* st_corrente, unsigned int dist_final, 
         i++;
     }
     if(i > (*p_ottimale)->n_tappe)return;
+    if(p_parziale->distanza<dist_final)return;
 
     if (st_corrente->distanza - autonomia <= dist_final) {   //fine ricorsione poiché ho trovato l'ultima tappa del percorso
         Tappa* n_tappa = malloc(sizeof(Tappa));  //aggiunge stazione finale al percorso parziale
