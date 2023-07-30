@@ -443,6 +443,14 @@ void scambiaPercorsi(Percorso** percorsoOttimale, Tappa** percorsoParziale) {
  * @param p_ottimale miglior percorso trovate fino all'istante attuale
  */
 void ricercaPercorsiInAvanti(Stazione* st_corrente, unsigned int dist_final, unsigned int autonomia, Tappa* p_parziale, Percorso** p_ottimale) {
+    Tappa* tmp = p_parziale;
+    int i = 0;
+    while(tmp!= NULL){
+        tmp = tmp->next;
+        i++;
+    }
+    if(i > (*p_ottimale)->n_tappe)return;
+
     if (st_corrente->distanza + autonomia >= dist_final) {   //fine ricorsione poiché ho trovato l'ultima tappa del percorso
 
         Tappa* n_tappa = malloc(sizeof(Tappa));  //aggiunge stazione finale al percorso parziale
@@ -499,6 +507,14 @@ void ricercaPercorsiInAvanti(Stazione* st_corrente, unsigned int dist_final, uns
  * @param p_ottimale miglior percorso trovate fino all'istante attuale
  */
 void ricercaPercorsiAllIndietro(Stazione* st_corrente, unsigned int dist_final, unsigned int autonomia, Tappa* p_parziale, Percorso** p_ottimale) {
+    Tappa* tmp = p_parziale;
+    int i = 0;
+    while(tmp!= NULL){
+        tmp = tmp->next;
+        i++;
+    }
+    if(i > (*p_ottimale)->n_tappe)return;
+
     if (st_corrente->distanza - autonomia <= dist_final) {   //fine ricorsione poiché ho trovato l'ultima tappa del percorso
         Tappa* n_tappa = malloc(sizeof(Tappa));  //aggiunge stazione finale al percorso parziale
         n_tappa->distanza = dist_final;
@@ -569,7 +585,7 @@ void pianificaPercorso(Stazione** head, unsigned int d_start, unsigned int d_end
 
     //allocazione percorso ottimale e parziale
     Percorso* percorsoOttimale = malloc(sizeof(Percorso));
-    percorsoOttimale->n_tappe = 10000000;
+    percorsoOttimale->n_tappe = 1000;
     percorsoOttimale->tappe = NULL;
     Tappa* percorsoParziale = NULL;
 
@@ -583,7 +599,7 @@ void pianificaPercorso(Stazione** head, unsigned int d_start, unsigned int d_end
     if(d_end>d_start) ricercaPercorsiInAvanti(stazionePartenza, d_end, stazionePartenza->head->autonomia, percorsoParziale,&percorsoOttimale);
     if(d_end<d_start) ricercaPercorsiAllIndietro(stazionePartenza, d_end, stazionePartenza->head->autonomia, percorsoParziale,&percorsoOttimale);
 
-    if (percorsoOttimale==NULL || percorsoOttimale->n_tappe==10000) {
+    if (percorsoOttimale==NULL || percorsoOttimale->n_tappe==1000) {
         if(printf("nessun percorso\n")<0) return;
         return;
     }
