@@ -429,7 +429,10 @@ void scambiaPercorsi(Percorso** percorsoOttimale, Tappa** percorsoParziale) {
     }
 }
 
-
+//TODO: smettere di usare la lista doppiamente concatenata per la ricerca ed usare un array di dimensione fissa creato
+// in pianifica percorso e passato per riferimento alle funzioni ricorsive, così che possano eseguire la ricerca su un
+// limitato numero di elementi -> ogni cella conterrà struct (no malloc) contenente 2 interi (distanza e autonomia)
+// si intende autonomia maggiore tra tutte quelle presenti (cioè la prima della lista)
 /**
  * Funzione per ricerca ricorsiva in avanti dei percorsi ottimali, che vengono poi aggiunti in apposita struttura dati
  * @param st_corrente nella prima iterazione è quella di partenza, poi viene usata per tenere traccia per st. corrente
