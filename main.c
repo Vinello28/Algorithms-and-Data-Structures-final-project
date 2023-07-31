@@ -40,6 +40,11 @@ typedef struct Percorso{
     Tappa* tappe;
 }Percorso;
 
+typedef struct StArray{
+    unsigned int distanza;
+    unsigned int autonomia
+}StArray;
+
 
 /**
  * Funzione di inserimento che mantiene la lista ordinata per autonomia decrescente
@@ -433,6 +438,7 @@ void scambiaPercorsi(Percorso** percorsoOttimale, Tappa** percorsoParziale) {
 // in pianifica percorso e passato per riferimento alle funzioni ricorsive, così che possano eseguire la ricerca su un
 // limitato numero di elementi -> ogni cella conterrà struct (no malloc) contenente 2 interi (distanza e autonomia)
 // si intende autonomia maggiore tra tutte quelle presenti (cioè la prima della lista)
+
 /**
  * Funzione per ricerca ricorsiva in avanti dei percorsi ottimali, che vengono poi aggiunti in apposita struttura dati
  * @param st_corrente nella prima iterazione è quella di partenza, poi viene usata per tenere traccia per st. corrente
@@ -441,6 +447,7 @@ void scambiaPercorsi(Percorso** percorsoOttimale, Tappa** percorsoParziale) {
  * @param p_parziale percorso che si sta attualmente percorrendo
  * @param p_ottimale miglior percorso trovate fino all'istante attuale
  */
+/*
 void ricercaPercorsiInAvanti(Stazione* st_corrente, unsigned int dist_final, unsigned int autonomia, Tappa* p_parziale, Percorso** p_ottimale) {
     Tappa* tmp = p_parziale;
     int i = 0;
@@ -496,7 +503,7 @@ void ricercaPercorsiInAvanti(Stazione* st_corrente, unsigned int dist_final, uns
         st_successiva = st_successiva->next;
     }
 }
-
+*/
 
 /**
  * Funzione per ricerca ricorsiva all'indietro dei percorsi ottimali, che vengono poi aggiunti in apposita struttura dati
@@ -506,6 +513,7 @@ void ricercaPercorsiInAvanti(Stazione* st_corrente, unsigned int dist_final, uns
  * @param p_parziale percorso che si sta attualmente percorrendo
  * @param p_ottimale miglior percorso trovate fino all'istante attuale
  */
+/*
 void ricercaPercorsiAllIndietro(Stazione* st_corrente, unsigned int dist_final, unsigned int autonomia, Tappa* p_parziale, Percorso** p_ottimale) {
 
     if (st_corrente->prev == NULL) return;   //se stazione corrente è prima stazione dell'autostrada
@@ -561,7 +569,7 @@ void ricercaPercorsiAllIndietro(Stazione* st_corrente, unsigned int dist_final, 
     }
 }
 
-
+*/
 /**
  * Principale funzione del programma, si occupa di cercare il percorso con meno tappe tra due stazioni date,
  * si assume che queste siano sempre presenti
@@ -579,11 +587,32 @@ void pianificaPercorso(Stazione** head, unsigned int d_start, unsigned int d_end
         if(printf("nessun percorso\n")<0) return;
         return;
     }
-    if(d_start==d_end){
+    int val = d_end-d_start;
+    if(val==0){
         if(printf("%d \n", d_start)<0) return;
         return;
     }
+    Stazione* tmp = stazionePartenza;
+    int i = 0;
 
+    while(tmp!= NULL){
+        if(d_end>d_start) tmp = tmp->next;
+        if(d_end<d_start)tmp = tmp->prev;
+        i++;
+    }
+
+    StArray percorso[i];
+    tmp = stazionePartenza;
+    while(tmp!=NULL){
+        percorso[i].autonomia = tmp->head->autonomia;
+        percorso[i].distanza = tmp->distanza;
+        i++;
+        tmp=tmp->next;
+        //TODO finire di implementare
+    }
+
+
+    /*
     //allocazione percorso ottimale e parziale
     Percorso* percorsoOttimale = malloc(sizeof(Percorso));
     percorsoOttimale->n_tappe = 1000;
@@ -610,6 +639,7 @@ void pianificaPercorso(Stazione** head, unsigned int d_start, unsigned int d_end
     }
     stdoutPercorso(&percorsoOttimale); //stdout del percorso migliore
     free(percorsoOttimale);
+     */
 }
 
 
