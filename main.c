@@ -6,7 +6,7 @@
 #include <string.h>
 
 #define MAX_AUTO 512
-
+#define DELETED 1918
 /**
  * Auto rappresentate dalla seguente struttura dati
  */
@@ -39,6 +39,21 @@ typedef struct Percorso{
     unsigned int coeff_dist;
     Tappa* tappe;
 }Percorso;
+
+
+void aggiungiTappa(Tappa** head, unsigned int distanza) {
+    Tappa* nuovaTappa = (Tappa*)malloc(sizeof(Tappa));
+    if (nuovaTappa != NULL) {
+        nuovaTappa->distanza = distanza;
+        nuovaTappa->next = NULL;
+    }
+    if (*head == NULL) *head = nuovaTappa;
+    else {
+        Tappa* corrente = *head;
+        while (corrente->next != NULL) corrente = corrente->next;
+        corrente->next = nuovaTappa;
+    }
+}
 
 /**
  * Funzione di inserimento che mantiene la lista ordinata per autonomia decrescente
@@ -349,160 +364,114 @@ Stazione* cercaStazione(Stazione** head, unsigned int dist) {
     return NULL;
 }
 
-
 /**
- * Funzione che si occupa di mandare in stdout il percorso ottimale
- * @param percorso puntatore al puntatore del percorso ottimale
+ * Funzione di ricerca iterativa che prende il percorso minimo quando
+ * la direzione è verso l'inizio dell'autostrada.
+ * @param start stazione di partenza
+ * @param end stazione di arrivo
+ * @return percorso ottimale
  */
-void stdoutPercorso(Percorso** percorso) {
-    if (*percorso == NULL || (*percorso)->tappe == NULL) {
-        if (printf("nessun percorso\n") < 0) return;
-        return;
-    }
-    unsigned int i = (*percorso)->n_tappe;
-    unsigned int distanze[i];
-    Tappa* p = (*percorso)->tappe;
-    while(p!=NULL){
-        distanze[i-1] = p->distanza;
-        i--;
-        p=p->next;
-    }
-    for(int j = 0; j<(*percorso)->n_tappe; j++)if (printf("%d ", distanze[j]) < 0) return;
-    if (printf("\n") < 0) return;
+Percorso ricercaPercorsoIndietro(Stazione* start, Stazione* end){
+    Stazione* st_corrente = start;
 
-    //deallocazione percorso
-    deallocaTappa(&((*percorso)->tappe));
-    free(*percorso);
-    *percorso = NULL;
-}
+    Percorso migliore;  // Inizializza il percorso ottimale
+    migliore.n_tappe = 10000;
+    migliore.coeff_dist = 10000;
+    migliore.tappe = NULL;
 
+    Tappa* attuale = NULL;
+    aggiungiTappa(&attuale, start->distanza);
+    int somma_p = attuale->distanza;
+    int tappe = 1;
+    Stazione* ultima = start;
+    int autonomiaUtile = start->head->autonomia;  // Inizializza l'autonomia attuale con quella della stazione di partenza
 
-/**
- * Data la testa della lista di tappe di un percorso la dealloca
- * @param head testa lista (contenuta in un percorso)
- */
-void deallocaPercorso(Tappa** t) {
-    Tappa* head = *t;
-    while (head != NULL) {
-        Tappa* tmp = head;
-        head = head->next;
-        free(tmp);
-    }
-    *t = NULL;
-}
-
-
-
-/**
- * Funzione per ricerca ricorsiva in avanti dei percorsi ottimali, che vengono poi aggiunti in apposita struttura dati
- * @param st_corrente nella prima iterazione è quella di partenza, poi viene usata per tenere traccia per st. corrente
- * @param dist_final distanza alla quale deve "arrivare" l'utente
- * @param autonomia dell'auto attualmente in uso
- * @param p_parziale percorso che si sta attualmente percorrendo
- * @param p_ottimale miglior percorso trovate fino all'istante attuale
- */
-void ricercaPercorsiInAvanti(Stazione* st_corrente, unsigned int dist_final, unsigned int autonomia, Tappa* p_parziale, Percorso** p_ottimale, int sommap, int n_tappe) {
-
-    //condizioni per far terminare ramo ricorsione
-    if (st_corrente->next == NULL) return;  //se stazione corrente è ultima stazione dell'autostrada
-    if (st_corrente->head == NULL || st_corrente->head->autonomia == 0) return; //se stazione corrente non ha auto o tutte le auto hanno autonomia nulla
-
-    if(n_tappe > (*p_ottimale)->n_tappe)return;
-    if(p_parziale->distanza>dist_final)return;
-
-    if (st_corrente->distanza + autonomia >= dist_final) {   //fine ricorsione poiché ho trovato l'ultima tappa del percorso
-
-        Tappa* n_tappa = malloc(sizeof(Tappa));  //aggiunge stazione finale al percorso parziale
-        n_tappa->distanza = dist_final;
-        n_tappa->next = p_parziale;
-        p_parziale = n_tappa;
-        n_tappe++;
-        if (n_tappe < (*p_ottimale)->n_tappe) {
-            (*p_ottimale)->n_tappe=n_tappe;
-            (*p_ottimale)->coeff_dist=sommap+dist_final;
-            (*p_ottimale)->tappe = p_parziale;
+    while (st_corrente != end) {
+        Stazione* proxSt = st_corrente->prev;
+        int autonomiaAttuale = autonomiaUtile;
+        while (proxSt != NULL && st_corrente->distanza - proxSt->distanza <= autonomiaAttuale) {
+            autonomiaAttuale -= st_corrente->distanza - proxSt->distanza;
+            st_corrente = proxSt;
+            proxSt = proxSt->prev;
         }
-        if (n_tappe == (*p_ottimale)->n_tappe && sommap<(*p_ottimale)->coeff_dist){
-            (*p_ottimale)->coeff_dist=sommap+dist_final;
-            (*p_ottimale)->tappe = p_parziale;
+        if (st_corrente == ultima) {
+            // Rimani bloccato, nessun salto disponibile
+            migliore.n_tappe = DELETED;
+            return migliore;
         }
-        return;
+        // Aggiungi il nodo corrente al percorso ottimale
+        aggiungiTappa(&attuale, st_corrente->distanza);
+        somma_p += st_corrente->distanza;
+        tappe++;
+        autonomiaUtile = st_corrente->head->autonomia;
+        ultima = st_corrente;
     }
-
-    Stazione* st_successiva = st_corrente->next;
-    while (st_successiva != NULL && st_successiva->distanza <= st_corrente->distanza + autonomia) {
-        unsigned int n_autonomia = autonomia - (st_successiva->distanza - st_corrente->distanza);
-
-        //check cambio auto
-        if(st_successiva->head != NULL)n_autonomia = max(n_autonomia, st_successiva->head->autonomia);
-
-        //aggiunge stazione in percorso parziale
-        Tappa* nuovaTappa = malloc(sizeof(Tappa));
-        nuovaTappa->distanza = st_successiva->distanza;
-        nuovaTappa->next = p_parziale;
-        p_parziale = nuovaTappa;
-
-        //ricorsione per stazioni successive
-        ricercaPercorsiInAvanti(st_successiva, dist_final, n_autonomia, p_parziale, p_ottimale, sommap+nuovaTappa->distanza, n_tappe+1);
-
-        p_parziale = p_parziale->next;
-        st_successiva = st_successiva->next;
+    if (tappe < migliore.n_tappe || (tappe == migliore.n_tappe && somma_p < migliore.coeff_dist)) {
+        migliore.tappe = attuale;
+        migliore.n_tappe = tappe;
+        migliore.coeff_dist = somma_p;
     }
+    return migliore;
 }
 
 /**
- * Funzione per ricerca ricorsiva all'indietro dei percorsi ottimali, che vengono poi aggiunti in apposita struttura dati
- * @param st_corrente nella prima iterazione è quella di partenza, poi viene usata per tenere traccia per st. corrente
- * @param dist_final distanza alla quale deve "arrivare" l'utente
- * @param autonomia dell'auto attualmente in uso
- * @param p_parziale percorso che si sta attualmente percorrendo
- * @param p_ottimale miglior percorso trovate fino all'istante attuale
+ * Funzione di ricerca iterativa che prende il percorso minimo quando
+ * la direzione è verso la fine dell'autostrada.
+ * @param start stazione di partenza
+ * @param end stazione di arrivo
+ * @return percorso ottimale
  */
-void ricercaPercorsiAllIndietro(Stazione* st_corrente, unsigned int dist_final, unsigned int autonomia, Tappa* p_parziale, Percorso** p_ottimale, int sommap, int n_tappe) {
+Percorso ricercaPercorsoInAvanti(Stazione* start, Stazione* end) {
+    Stazione* st_corrente = start;
 
-    //condizioni per far terminare ramo ricorsione
-    if (st_corrente->prev == NULL) return;   //se stazione corrente è prima stazione dell'autostrada
-    if (st_corrente->head == NULL || st_corrente->head->autonomia == 0) return; //se stazione corrente non ha auto o tutte le auto hanno autonomia nulla
-    if(n_tappe > (*p_ottimale)->n_tappe)return;
-    if(p_parziale->distanza<dist_final)return;
+    Percorso migliore;  // Inizializza il percorso ottimale
+    migliore.n_tappe = 10000;
+    migliore.coeff_dist = 10000;
+    migliore.tappe = NULL;
 
-    if (st_corrente->distanza - autonomia <= dist_final) {   //fine ricorsione poiché ho trovato l'ultima tappa del percorso
-        Tappa* n_tappa = malloc(sizeof(Tappa));  //aggiunge stazione finale al percorso parziale
-        n_tappa->distanza = dist_final;
-        n_tappa->next = p_parziale;
-        p_parziale = n_tappa;
-        n_tappe++;
-        if (n_tappe < (*p_ottimale)->n_tappe) {
-            (*p_ottimale)->n_tappe=n_tappe;
-            (*p_ottimale)->coeff_dist=sommap+dist_final;
-            (*p_ottimale)->tappe = p_parziale;
+    Tappa* attuale = NULL;
+    aggiungiTappa(&attuale, start->distanza);
+    int somma_p = attuale->distanza;
+    int tappe = 1;
+    Stazione* ultima = start;
+    int autonomiaUtile = start->head->autonomia;  // Inizializza l'autonomia attuale con quella della stazione di partenza
+
+    while (st_corrente != end) {
+        Stazione* proxSt = st_corrente->next;
+        int autonomiaAttuale = autonomiaUtile;
+        while (proxSt != NULL && proxSt->distanza - st_corrente->distanza <= autonomiaAttuale) {
+            autonomiaAttuale -= proxSt->distanza - st_corrente->distanza;
+            st_corrente = proxSt;
+            proxSt = proxSt->next;
         }
-        if (n_tappe == (*p_ottimale)->n_tappe && sommap<(*p_ottimale)->coeff_dist){
-            (*p_ottimale)->coeff_dist=sommap+dist_final;
-            (*p_ottimale)->tappe = p_parziale;
+        if (st_corrente == ultima) {
+            //Rimani bloccato, nessun salto disponibile
+            migliore.n_tappe = DELETED;
+            return migliore;
         }
-        return;
+        // Aggiungi il nodo corrente al percorso ottimale
+        aggiungiTappa(&attuale, st_corrente->distanza);
+        somma_p += st_corrente->distanza;
+        tappe++;
+        autonomiaUtile = st_corrente->head->autonomia;
+        ultima = st_corrente;
     }
-
-    Stazione* st_successiva = st_corrente->prev;
-    while (st_successiva != NULL && st_successiva->distanza >= st_corrente->distanza - autonomia) {
-        unsigned int n_autonomia = autonomia - (st_corrente->distanza - st_successiva->distanza);
-
-        //check cambio auto
-        if(st_successiva->head != NULL)n_autonomia = max(n_autonomia, st_successiva->head->autonomia);
-
-        //aggiunge stazione in percorso parziale
-        Tappa* nuovaTappa = malloc(sizeof(Tappa));
-        nuovaTappa->distanza = st_successiva->distanza;
-        nuovaTappa->next = p_parziale;
-        p_parziale = nuovaTappa;
-
-        //ricorsione per stazioni successive
-        ricercaPercorsiAllIndietro(st_successiva, dist_final, n_autonomia, p_parziale, p_ottimale, sommap+nuovaTappa->distanza, n_tappe+1);
-
-        p_parziale = p_parziale->next;
-        st_successiva = st_successiva->prev;
+    if (tappe < migliore.n_tappe || (tappe == migliore.n_tappe && somma_p < migliore.coeff_dist)) {
+        migliore.tappe = attuale;
+        migliore.n_tappe = tappe;
+        migliore.coeff_dist = somma_p;
     }
+    return migliore;
+
+}
+
+void printPath(Tappa* path) {
+    while (path != NULL) {
+        printf("%d ", path->distanza);
+        path = path->next;
+    }
+    printf("\n");
+    deallocaTappa(&path);
 }
 
 /**
@@ -522,36 +491,17 @@ void pianificaPercorso(Stazione** head, unsigned int d_start, unsigned int d_end
         if(printf("nessun percorso\n")<0) return;
         return;
     }
-    if(d_end-d_start==0){
+    int var = d_end-d_start;
+    if(var == 0){
         if(printf("%d \n", d_start)<0) return;
         return;
     }
+    Percorso ottimale;
+    if(var>0)ottimale = ricercaPercorsoInAvanti(stazionePartenza, stazioneArrivo);
+    else ottimale = ricercaPercorsoIndietro(stazionePartenza, stazioneArrivo);
+    if(ottimale.n_tappe==DELETED)if(printf("nessun percorso\n")>0)return;
+    printPath(ottimale.tappe);
 
-    //allocazione percorso ottimale e parziale
-    Percorso* percorsoOttimale = malloc(sizeof(Percorso));
-    percorsoOttimale->n_tappe = 1000;
-    percorsoOttimale->tappe = NULL;
-    Tappa* percorsoParziale = NULL;
-
-    //allocazione prima tappa del percorso parziale prima tappa (partenza)
-    Tappa* nuovaTappa = malloc(sizeof(Tappa));
-    nuovaTappa->distanza = stazionePartenza->distanza;
-    nuovaTappa->next = percorsoParziale;
-    percorsoParziale = nuovaTappa;
-
-    //chiama la funzione ricorsiva per trovare il percorso ottimale
-    if(d_end>d_start) ricercaPercorsiInAvanti(stazionePartenza, d_end, stazionePartenza->head->autonomia, percorsoParziale,&percorsoOttimale, d_start, 1);
-    if(d_end<d_start) ricercaPercorsiAllIndietro(stazionePartenza, d_end, stazionePartenza->head->autonomia, percorsoParziale,&percorsoOttimale, d_start, 1);
-
-
-    if (percorsoOttimale==NULL || percorsoOttimale->n_tappe==1000) {
-        deallocaPercorso(&percorsoOttimale->tappe); //stdout del percorso migliore
-        free(percorsoOttimale);
-        if(printf("nessun percorso\n")<0) return;
-        return;
-    }
-    stdoutPercorso(&percorsoOttimale); //stdout del percorso migliore
-    free(percorsoOttimale);
 }
 
 
