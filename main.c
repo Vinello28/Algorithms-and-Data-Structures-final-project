@@ -41,7 +41,7 @@ typedef struct Percorso{
 }Percorso;
 
 
-void aggiungiTappa(Tappa** head, unsigned int distanza) {
+Tappa* aggiungiTappa(Tappa** head, unsigned int distanza) {
     Tappa* nuovaTappa = (Tappa*)malloc(sizeof(Tappa));
     if (nuovaTappa != NULL) {
         nuovaTappa->distanza = distanza;
@@ -53,6 +53,7 @@ void aggiungiTappa(Tappa** head, unsigned int distanza) {
         while (corrente->next != NULL) corrente = corrente->next;
         corrente->next = nuovaTappa;
     }
+    return nuovaTappa;
 }
 
 /**
@@ -143,6 +144,18 @@ void deallocaTappa(Tappa** head) {
         attuale = tmp;
     }
     *head = NULL;
+}
+
+/**
+ *
+ * @param percorso
+ */
+void rimuoviUltimaTappa(Tappa** percorso) {
+    if (*percorso != NULL) {
+        Tappa* temp = *percorso;
+        *percorso = (*percorso)->next;
+        free(temp);
+    }
 }
 
 
@@ -422,48 +435,94 @@ Percorso ricercaPercorsoIndietro(Stazione* start, Stazione* end){
  * @return percorso ottimale
  */
 Percorso ricercaPercorsoInAvanti(Stazione* start, Stazione* end) {
-    Stazione* st_corrente = start;
-
-    Percorso migliore;  // Inizializza il percorso ottimale
+    Percorso migliore;
     migliore.n_tappe = 10000;
     migliore.coeff_dist = 10000;
     migliore.tappe = NULL;
 
-    Tappa* attuale = NULL;
-    aggiungiTappa(&attuale, start->distanza);
-    int somma_p = attuale->distanza;
-    int tappe = 1;
-    Stazione* ultima = start;
-    int autonomiaUtile = start->head->autonomia;  // Inizializza l'autonomia attuale con quella della stazione di partenza
+    Tappa* temp = NULL;
 
-    while (st_corrente != end) {
-        Stazione* proxSt = st_corrente->next;
-        int autonomiaAttuale = autonomiaUtile;
-        while (proxSt != NULL && proxSt->distanza - st_corrente->distanza <= autonomiaAttuale) {
-            autonomiaAttuale -= proxSt->distanza - st_corrente->distanza;
-            st_corrente = proxSt;
-            proxSt = proxSt->next;
+    Stazione* actual = start;
+    //Tappa* last = aggiungiTappa(&temp, actual->distanza);
+    int autonomia = start->head->autonomia;
+    int n_tappe = 1;
+
+    int tmp_auto = autonomia;
+
+    //int none = 0;
+    while (start->distanza+autonomia >= actual->distanza){
+        printf("INFO: actual station %d\n", actual->distanza);
+        Stazione* new_st = actual->next;
+        Stazione* old_st = actual;
+        Tappa* last = aggiungiTappa(&temp, old_st->distanza);
+        if(last==NULL)continue;
+
+        //Tappa* f = aggiungiTappa(&temp, old_st->distanza);
+        int sommetkin = start->distanza;
+        tmp_auto = old_st->head->autonomia;
+        n_tappe=1;
+
+        while (new_st != NULL && new_st->distanza <= end->distanza && tmp_auto >= new_st->distanza-new_st->prev->distanza){
+            //condizioni di uscita
+            if(n_tappe>migliore.n_tappe) break;
+
+            printf("INFO: ora provo %d con ultima valida %d\n", new_st->distanza, old_st->distanza); //TODO rimuovere
+            tmp_auto -= new_st->distanza - new_st->prev->distanza;
+            printf("INFO: autonomia attuale -> %d\n", tmp_auto); //TODO rimuovere
+
+            if(tmp_auto >= 0 && (new_st == end || new_st->head->autonomia+new_st->distanza>=end->distanza)){
+                last = aggiungiTappa(&temp, new_st->distanza);
+                if(new_st->head->autonomia+new_st->distanza>=end->distanza){
+                    tmp_auto=new_st->head->autonomia-(end->distanza-new_st->distanza);
+                    last = aggiungiTappa(&temp, end->distanza);
+                    n_tappe++;
+                    sommetkin += end->distanza;
+                }
+                n_tappe++;
+                sommetkin+=new_st->distanza;
+                printf("INFO: migliore.old s=%d t=%d, migliore.new s=%d, t=%d\n", migliore.coeff_dist, migliore.n_tappe, sommetkin, n_tappe);
+                if(migliore.n_tappe>n_tappe) {
+                    migliore.n_tappe = n_tappe;
+                    migliore.coeff_dist = sommetkin;
+                    Tappa *iterator = temp;
+                    while (iterator != NULL) {
+                        last = aggiungiTappa(&migliore.tappe, iterator->distanza);
+                        iterator=iterator->next;
+                    }
+                    while(temp!=NULL && temp->distanza >= actual->distanza)rimuoviUltimaTappa(&temp);
+                    printf("INFO: completato percorso\n");
+                    //none++;
+                    break;
+                }
+            }
+            if(tmp_auto <= 0 || new_st->next->distanza-new_st->distanza > tmp_auto){
+
+                printf("INFO: cambio auto con old_st=%d\n", old_st->distanza); //TODO rimuovere
+
+                if(new_st->next!=NULL && old_st->head->autonomia <= new_st->next->distanza-old_st->distanza){
+                    last = aggiungiTappa(&temp, new_st->distanza);
+                    tmp_auto=new_st->head->autonomia;
+                    old_st=new_st;
+                    //printf("INFO: aggiunta staz.n° %d\n", old_st->distanza);
+                }else{
+                    tmp_auto+=new_st->distanza - old_st->distanza;
+                    new_st = old_st;
+                    old_st = old_st->prev;
+                    //do rimuoviUltimaTappa(&last);
+                       // while (last != NULL && old_st!=NULL && last->distanza>old_st->distanza);
+
+                    if(old_st!=NULL && actual!=NULL && old_st->distanza<actual->distanza)break;
+                }
+            }
+            new_st=new_st->next;
         }
-        if (st_corrente == ultima) {
-            //Rimani bloccato, nessun salto disponibile
-            migliore.n_tappe = DELETED;
-            return migliore;
-        }
-        // Aggiungi il nodo corrente al percorso ottimale
-        aggiungiTappa(&attuale, st_corrente->distanza);
-        somma_p += st_corrente->distanza;
-        tappe++;
-        autonomiaUtile = st_corrente->head->autonomia;
-        ultima = st_corrente;
+        actual=actual->next;
     }
-    if (tappe < migliore.n_tappe || (tappe == migliore.n_tappe && somma_p < migliore.coeff_dist)) {
-        migliore.tappe = attuale;
-        migliore.n_tappe = tappe;
-        migliore.coeff_dist = somma_p;
-    }
+    //if(none == 0)migliore.n_tappe=DELETED;
     return migliore;
-
 }
+
+
 
 void printPath(Tappa* path) {
     while (path != NULL) {
