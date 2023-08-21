@@ -216,6 +216,7 @@ void rottamaAuto(Stazione** head, unsigned int dist, unsigned int a){
                     if (prev == NULL)st->head = tmp->next;
                     else prev->next = tmp->next;
                     free(tmp);
+                    st->num_auto--;
                     if(printf("rottamata\n")<0)return;
                     return;
                 } else {
@@ -237,6 +238,7 @@ void rottamaAuto(Stazione** head, unsigned int dist, unsigned int a){
             if (prev == NULL)st->head = tmp->next;
             else prev->next = tmp->next;
             free(tmp);
+            st->num_auto--;
             if(printf("rottamata\n")<0)return;
             return;
         } else {
