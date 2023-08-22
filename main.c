@@ -411,15 +411,12 @@ Percorso ricercaPercorsoIndietro(Stazione* start, Stazione* end){
 
         while (new_st != NULL && new_st->distanza >= end->distanza && tmp_auto >= new_st->next->distanza-new_st->distanza){
 
-        if(temp.n_tappe>migliore.n_tappe|| migliore.coeff_dist<temp.coeff_dist) break; //condizioni di uscita
+        if(temp.n_tappe>migliore.n_tappe || migliore.coeff_dist<temp.coeff_dist) break; //condizioni di uscita
         tmp_auto -= new_st->next->distanza - new_st->distanza;
 
         if(tmp_auto >= 0 && (new_st == end || new_st->head->autonomia-new_st->distanza<=end->distanza)){
             last = aggiungiTappa(&temp, new_st->distanza);
-            if(new_st->head->autonomia-new_st->distanza<=end->distanza){
-                tmp_auto=new_st->head->autonomia-(end->distanza-new_st->distanza);
-                last = aggiungiTappa(&temp, end->distanza);
-            }
+            if(new_st->head->autonomia-new_st->distanza<=end->distanza) last = aggiungiTappa(&temp, end->distanza);
             if(migliore.n_tappe>temp.n_tappe) {
                 deallocaTappa(&migliore.tappe);
                 migliore=temp;
@@ -488,11 +485,7 @@ Percorso ricercaPercorsoInAvanti(Stazione* start, Stazione* end) {
 
             if(tmp_auto >= 0 && (new_st == end || new_st->head->autonomia+new_st->distanza>=end->distanza)){
                 last = aggiungiTappa(&temp, new_st->distanza);
-                if(new_st->head->autonomia+new_st->distanza>=end->distanza){
-                    tmp_auto=new_st->head->autonomia-(end->distanza-new_st->distanza);
-                    last = aggiungiTappa(&temp, end->distanza);
-                }
-
+                if(new_st->head->autonomia+new_st->distanza>=end->distanza) last = aggiungiTappa(&temp, end->distanza);
                 if(migliore.n_tappe>temp.n_tappe) {
                     deallocaTappa(&migliore.tappe);
                     migliore=temp;
