@@ -84,7 +84,7 @@ void aggiungiAutoByDesc(Auto** testa, unsigned int a) {
     nuovaAuto->next = current->next;
     current->next = nuovaAuto;
 }
-//TODO: sistemare inserimento 500 auto
+
 
 
 /**
@@ -165,14 +165,19 @@ void aggiungiAuto(Stazione** head, unsigned int dist, unsigned int autonomia){
 
     if(st != NULL){
         if(st->distanza == dist){
-            st->num_auto++;
-            aggiungiAutoByDesc(&st->head, autonomia); //condiviso con funzione aggiungiStazione(...)
-            if(printf("aggiunta\n")<0)return;
-            return;
+            if(st->num_auto<MAX_AUTO){
+                st->num_auto++;
+                aggiungiAutoByDesc(&st->head, autonomia);
+                if(printf("aggiunta\n")<0)return;
+                return;
+            } else {
+                if(printf("non aggiunta\n")<0)return;
+                return;
+            }
         }
         while((st->next != NULL && st->distanza<=dist) || (st->next==NULL && st->distanza==dist)){
             if(st->distanza==dist) {
-                if(st->num_auto+1<MAX_AUTO){
+                if(st->num_auto<MAX_AUTO){
                     st->num_auto++;
                     aggiungiAutoByDesc(&st->head, autonomia);
                     if(printf("aggiunta\n")<0)return;
@@ -406,7 +411,7 @@ Percorso ricercaPercorsoIndietro(Stazione* start, Stazione* end){
 
         while (new_st != NULL && new_st->distanza >= end->distanza && tmp_auto >= new_st->next->distanza-new_st->distanza){
 
-        if(temp.n_tappe>migliore.n_tappe) break; //condizioni di uscita
+        if(temp.n_tappe>migliore.n_tappe|| migliore.coeff_dist<temp.coeff_dist) break; //condizioni di uscita
         tmp_auto -= new_st->next->distanza - new_st->distanza;
 
         if(tmp_auto >= 0 && (new_st == end || new_st->head->autonomia-new_st->distanza<=end->distanza)){
@@ -441,6 +446,7 @@ Percorso ricercaPercorsoIndietro(Stazione* start, Stazione* end){
         }
         actual=actual->prev;
     }
+    if(migliore.n_tappe<3||migliore.n_tappe==10000)migliore.n_tappe=DELETED;
     return migliore;
 }
 
@@ -477,7 +483,7 @@ Percorso ricercaPercorsoInAvanti(Stazione* start, Stazione* end) {
 
         while (new_st != NULL && new_st->distanza <= end->distanza && tmp_auto >= new_st->distanza-new_st->prev->distanza){
 
-            if(temp.n_tappe>migliore.n_tappe) break; //condizioni di uscita
+            if(temp.n_tappe>migliore.n_tappe || migliore.coeff_dist<temp.coeff_dist) break; //condizioni di uscita
             tmp_auto -= new_st->distanza - new_st->prev->distanza;
 
             if(tmp_auto >= 0 && (new_st == end || new_st->head->autonomia+new_st->distanza>=end->distanza)){
@@ -512,6 +518,7 @@ Percorso ricercaPercorsoInAvanti(Stazione* start, Stazione* end) {
         }
         actual=actual->next;
     }
+    if(migliore.n_tappe<3||migliore.n_tappe==10000)migliore.n_tappe=DELETED;
     return migliore;
 }
 
