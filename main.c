@@ -431,7 +431,7 @@ Percorso ricercaPercorsoIndietro(Stazione* start, Stazione* end){
             int tmp_auto = old_st->head->autonomia;
 
             while (new_st != NULL && new_st->distanza >= end->distanza && tmp_auto >= new_st->next->distanza - new_st->distanza) {
-
+                //printf("INFO: working...\n");
                 if (temp.n_tappe > migliore.n_tappe || (migliore.n_tappe==temp.n_tappe&&migliore.coeff_dist < temp.coeff_dist)) break; //condizioni di uscita
 
                 tmp_auto -= new_st->next->distanza - new_st->distanza;
@@ -446,7 +446,7 @@ Percorso ricercaPercorsoIndietro(Stazione* start, Stazione* end){
                 if (tmp_auto >= 0 && (new_st == end || new_st->distanza - new_st->head->autonomia <= end->distanza)) {  //TODO appena osservo che la stazione visitata permette di arrivare alla fine entro
                     aggiungiTappa(&temp, new_st->distanza);    //TODO per è da tener presente che devo comunque prendere la stazione con distanza minore
 
-                    if (new_st->distanza - new_st->head->autonomia <= end->distanza) //TODO ho un errore a questo punto, di accesso non valido ma non ne capisco il motivo
+                    if (new_st->distanza != end->distanza) //TODO ho un errore a questo punto, di accesso non valido ma non ne capisco il motivo
                         aggiungiTappa(&temp, end->distanza);
 
                     if (migliore.n_tappe > temp.n_tappe || (migliore.n_tappe==temp.n_tappe&&migliore.coeff_dist>temp.coeff_dist)) {
@@ -517,18 +517,24 @@ Percorso ricercaPercorsoInAvanti(Stazione* start, Stazione* end) {
 
             int tmp_auto = old_st->head->autonomia;
 
-            while (new_st != NULL && new_st->distanza <= end->distanza &&
-                   tmp_auto >= new_st->distanza - new_st->prev->distanza) {
-
+            while (new_st != NULL && new_st->distanza <= end->distanza && tmp_auto >= new_st->distanza - new_st->prev->distanza) {
+                //printf("INFO: working...\n");
                 if (temp.n_tappe > migliore.n_tappe || (migliore.n_tappe==temp.n_tappe&&migliore.coeff_dist < temp.coeff_dist))
                     break; //condizioni di uscita
 
                 tmp_auto -= new_st->distanza - new_st->prev->distanza;
 
+                if((new_st->head==NULL || new_st->head->autonomia==0) && new_st->distanza!=end->distanza){
+                    while((new_st->head==NULL || new_st->head->autonomia==0) && tmp_auto > 0) {
+                        new_st=new_st->next;
+                        tmp_auto -= new_st->distanza - new_st->prev->distanza;
+                    }
+                }
+
                 if (tmp_auto >= 0 && (new_st == end || new_st->head->autonomia + new_st->distanza >= end->distanza)) {
                     aggiungiTappa(&temp, new_st->distanza);
 
-                    if (new_st->head->autonomia + new_st->distanza >= end->distanza)
+                    if (new_st->distanza != end->distanza) //TODO ho un errore a questo punto, di accesso non valido ma non ne capisco il motivo
                         aggiungiTappa(&temp, end->distanza);
 
                     if (migliore.n_tappe > temp.n_tappe ||
