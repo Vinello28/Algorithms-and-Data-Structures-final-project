@@ -89,12 +89,12 @@ void aggiungiAutoByDesc(Auto** testa, unsigned int a) {
 }
 
 
-
 /**
  * Funzione che dealloca la lista di auto data una stazione
  * @param head testa della lista di auto
  */
 void deallocaAuto(Auto** head) {
+    if(*head==NULL)return;
     Auto* attuale = *head;
     Auto* tmp;
 
@@ -112,6 +112,7 @@ void deallocaAuto(Auto** head) {
  * @param head testa dell'autostrada
  */
 void deallocaStazioni(Stazione** head) {
+    if(*head==NULL)return;
     Stazione* attuale = *head;
     Stazione* tmp;
 
@@ -131,6 +132,7 @@ void deallocaStazioni(Stazione** head) {
  * @param head testa del percorso
  */
 void deallocaTappa(Tappa** head) {
+    if(*head==NULL)return;
     Tappa* attuale = *head;
     Tappa* tmp;
 
@@ -162,12 +164,17 @@ int rimuoviUltimaTappa(Percorso* percorso) {
 /**
  * Funzione che aggiunge un auto scorrendo le stazioni fino a cercare (se esiste) quella desiderata,
  * poi la passa a metodo che si preoccupa di inserire l'auto mantenendo l'ordinamento decrescente
- * @param head testa della lista passata da main
+ * @param testa testa della lista passata da main
  * @param dist distanza della stazione cercata
  * @param autonomia dell'auto da inserire
  */
-void aggiungiAuto(Stazione** head, unsigned int dist, unsigned int autonomia){
-    Stazione* st = *head;
+void aggiungiAuto(Stazione** testa, unsigned int dist, unsigned int autonomia){
+    if(*testa == NULL) {
+        if(printf("non aggiunta\n")>0)return;
+        return;
+    }
+
+    Stazione* st = *testa;
 
     if(st != NULL){
         if(st->distanza == dist){
@@ -205,12 +212,17 @@ void aggiungiAuto(Stazione** head, unsigned int dist, unsigned int autonomia){
 
 /**
  * Funzione che elimina un auto dalla lista di una precisa stazione
- * @param head testa della lista passata da main
+ * @param testa testa della lista passata da main
  * @param dist distanza della stazione cercata
  * @param a autonomia dell'auto da eliminare.
  */
-void rottamaAuto(Stazione** head, unsigned int dist, unsigned int a){
-    Stazione* st= *head;
+void rottamaAuto(Stazione** testa, unsigned int dist, unsigned int a){
+    if(*testa == NULL) {
+        if(printf("non rottamata\n")>0)return;
+        return;
+    }
+
+    Stazione* st= *testa;
 
     if(st->next!=NULL) {
         while ((st->next != NULL && st->distanza<=dist) || (st->next==NULL && st->distanza==dist)) {
@@ -446,9 +458,9 @@ Percorso ricercaPercorsoIndietro(Stazione* start, Stazione* end){
                 }
 
                 if (tmp_auto >= 0 && (new_st == end || (new_st->head!=NULL && new_st->distanza - new_st->head->autonomia <= end->distanza))) {
-                    aggiungiTappa(&temp, new_st->distanza);    //TODO per è da tener presente che devo comunque prendere la stazione con distanza minore
+                    aggiungiTappa(&temp, new_st->distanza);
 
-                    if (new_st->distanza != end->distanza) //TODO ho un errore a questo punto, di accesso non valido ma non ne capisco il motivo
+                    if (new_st->distanza != end->distanza)
                         aggiungiTappa(&temp, end->distanza);
 
                     if (migliore.n_tappe > temp.n_tappe || (migliore.n_tappe==temp.n_tappe&&migliore.coeff_dist>temp.coeff_dist)) {
@@ -521,10 +533,9 @@ Percorso ricercaPercorsoInAvanti(Stazione* start, Stazione* end) {
             int tmp_auto = old_st->head->autonomia;
 
             while (new_st != NULL && new_st->distanza <= end->distanza && tmp_auto >= new_st->distanza - new_st->prev->distanza) {
-                if (temp.n_tappe > migliore.n_tappe || (migliore.n_tappe==temp.n_tappe&&migliore.coeff_dist < temp.coeff_dist))
-                    break; //condizioni di uscita
+                if (temp.n_tappe > migliore.n_tappe || (migliore.n_tappe==temp.n_tappe&&migliore.coeff_dist < temp.coeff_dist)) break; //condizioni di uscita
 
-                if(new_st->prev!=NULL)tmp_auto -= new_st->distanza - new_st->prev->distanza; //TODO per risolvere SIGSEG
+                if(new_st->prev!=NULL)tmp_auto -= new_st->distanza - new_st->prev->distanza;
 
                 if((new_st->head==NULL || new_st->head->autonomia==0) && new_st->distanza!=end->distanza){
                     while((new_st->head==NULL || new_st->head->autonomia==0) && new_st->next!=NULL && tmp_auto > 0) {
@@ -537,7 +548,7 @@ Percorso ricercaPercorsoInAvanti(Stazione* start, Stazione* end) {
                 if (tmp_auto >= 0 && (new_st == end || new_st->head->autonomia + new_st->distanza >= end->distanza)) {
                     aggiungiTappa(&temp, new_st->distanza);
 
-                    if (new_st->distanza != end->distanza) //TODO ho un errore a questo punto, di accesso non valido ma non ne capisco il motivo
+                    if (new_st->distanza != end->distanza)
                         aggiungiTappa(&temp, end->distanza);
 
                     if (migliore.n_tappe > temp.n_tappe ||
@@ -613,14 +624,13 @@ void pianificaPercorso(Stazione** head, unsigned int d_start, unsigned int d_end
 
 int main() {
     Stazione *head = NULL;
-    //FILE *source = stdin;
     char c;
     char input[20];
-    int inputIndex = 0;
+    int indice = 0;
     while ((c = getchar()) != EOF) {
         if (c == '\n' || c == ' ') {
-            input[inputIndex] = '\0'; // Termina la stringa
-            inputIndex = 0; // Reimposta l'indice
+            input[indice] = '\0';
+            indice = 0;
 
             if (strcmp(input, "aggiungi-stazione") == 0) {
                 unsigned int dist, n_a;
@@ -630,31 +640,40 @@ int main() {
                         if (scanf(" %d", &a[i]) != EOF) continue;
                     }
                     aggiungiStazione(&head, dist, n_a, a);
-                    //TODO ripulire buffer dopo ogni comando;
+
+                    for(int x =0; x<20; x++)input[x]=0;
+
                 }
             } else if (strcmp(input, "aggiungi-auto") == 0) {
                 unsigned int dist, a;
                 if (scanf("%d %d", &dist, &a) != EOF) {
                     aggiungiAuto(&head, dist, a);
                 }
+                for(int x =0; x<20; x++)input[x]=0;
+
             } else if (strcmp(input, "rottama-auto") == 0) {
                 unsigned int dist, a;
                 if (scanf("%d %d", &dist, &a) != EOF) {
                     rottamaAuto(&head, dist, a);
                 }
+                for(int x =0; x<20; x++)input[x]=0;
+
             } else if (strcmp(input, "demolisci-stazione") == 0) {
                 unsigned int dist;
                 if (scanf("%d", &dist) != EOF) {
                     demolisciStazione(&head, dist);
                 }
+                for(int x =0; x<20; x++)input[x]=0;
+
             } else if (strcmp(input, "pianifica-percorso") == 0) {
                 unsigned int start, end;
                 if (scanf("%d %d", &start, &end) != EOF) {
                     pianificaPercorso(&head, start, end);
                 }
+                for(int x =0; x<20; x++)input[x]=0;
             }
         } else {
-            input[inputIndex++] = c;
+            input[indice++] = c;
         }
     }
     deallocaStazioni(&head);
