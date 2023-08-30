@@ -516,16 +516,33 @@ Percorso ricercaPercorsoIndietro(Stazione* start, Stazione* end){
     }
     if(migliore.n_tappe<3||migliore.n_tappe==10000)migliore.n_tappe=DELETED;
     else{
-        for (Tappa* tmp = ultima->prev; tmp != migliore.tappe->next; tmp = tmp->prev){
-            Stazione* s = tmp->prev->ref;
-            while(s->distanza<tmp->prev->prev->distanza){
-                if(s->head!=NULL && s->distanza>tmp->prev->distanza && s->distanza+s->head->autonomia <= tmp->distanza){
+        Tappa* tmp = migliore.tappe;
+        while(tmp->next!=NULL)tmp =tmp->next;
+        while(tmp->distanza != migliore.tappe->distanza){
+            Stazione* s = NULL;
+            if(tmp->prev==NULL)break;
+            else s = tmp->prev->ref->prev;
+            while(s!=NULL && tmp->prev->prev!=NULL && s->distanza>tmp->distanza){
+                if(s->head!=NULL && tmp->prev->prev->distanza-tmp->prev->prev->ref->head->autonomia <= s->distanza && s->distanza-s->head->autonomia<=tmp->distanza){
                     tmp->prev->distanza=s->distanza;
                     tmp->prev->ref=s;
                 }
-                if(s->prev->distanza==migliore.tappe->next->distanza)break;
-                s=s->next;
+                else if(s!=NULL && tmp->prev->prev!=NULL && tmp->prev->prev->distanza<migliore.tappe->distanza && s->distanza-s->head->autonomia<=tmp->distanza){
+                    Stazione* p = tmp->prev->prev->ref;
+                    while(p->distanza<tmp->prev->prev->prev->distanza){
+                        if(p->distanza-p->head->autonomia <= s->distanza){
+                            tmp->prev->prev->ref=p;
+                            tmp->prev->prev->distanza=p->distanza;
+                            tmp->prev->ref=s;
+                            tmp->prev->distanza=s->distanza;
+                            break;
+                        }
+                        p=p->next;
+                    }
+                }
+                s=s->prev;
             }
+            tmp = tmp->prev;
         }
     }
     return migliore;
@@ -623,16 +640,20 @@ Percorso ricercaPercorsoInAvanti(Stazione* start, Stazione* end) {
     }
     if(migliore.n_tappe<3||migliore.n_tappe==10000)migliore.n_tappe=DELETED;
     else{
-        for (Tappa* tmp = ultima->prev; tmp != migliore.tappe->next; tmp = tmp->prev){
-            Stazione* s = tmp->prev->ref;
-            while(s->distanza>tmp->prev->prev->distanza){
+        Tappa* tmp = migliore.tappe;
+        while(tmp->next!=NULL)tmp =tmp->next;
+        while(tmp->distanza != migliore.tappe->distanza){
+            Stazione* s = NULL;
+            if(tmp->prev==NULL)break;
+            else s = tmp->prev->ref;
+            while(s!=NULL && tmp->prev->prev!=NULL && s->distanza>tmp->prev->prev->distanza){
                 if(s->head!=NULL && s->distanza<tmp->prev->distanza && s->distanza+s->head->autonomia >= tmp->distanza){
                     tmp->prev->distanza=s->distanza;
                     tmp->prev->ref=s;
                 }
-                if(s->prev->distanza==migliore.tappe->next->distanza)break;
                 s=s->prev;
             }
+            tmp = tmp->prev;
         }
     }
     return migliore;
