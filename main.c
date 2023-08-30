@@ -16,6 +16,7 @@ typedef struct Auto{
     struct Auto* next;
 }Auto;
 
+
 /**
  * l'autostrada è rappresentata da una lista doppiamente concatenata di stazioni
  */
@@ -32,32 +33,45 @@ typedef struct Stazione{
  */
 typedef struct Tappa{
     unsigned int distanza;
+    Stazione* ref;
     struct Tappa* next;
+    struct Tappa* prev;
 }Tappa;
 
+/**
+ * Stuttura dati utilizzata per tenere traccia del percorso temporaneo e ottimale
+ */
 typedef struct Percorso{
     unsigned int n_tappe;
     unsigned int coeff_dist;
     Tappa* tappe;
 }Percorso;
 
+Tappa* ultima=NULL; //usata per tenere traccia dell'ultima tappa inserita
+
+
 /**
  * Aggiunge una tappa al percorso temporaneo
  * @param percorso puntatore al percorso temporaneo
  * @param distanza della nuova tappa
+ * @param st puntatore alla stazione alla quale è associata la tappa
  */
-void aggiungiTappa(Percorso* percorso, unsigned int distanza) {
+void aggiungiTappa(Percorso* percorso, Stazione* st) {
     Tappa* nuovaTappa = (Tappa*)malloc(sizeof(Tappa));
     if (nuovaTappa != NULL) {
-        nuovaTappa->distanza = distanza;
+        nuovaTappa->distanza = st->distanza;
+        nuovaTappa->ref = st;
         nuovaTappa->next = NULL;
+        nuovaTappa->prev = NULL;
     }
     if (percorso->tappe == NULL) percorso->tappe = nuovaTappa;
     else {
         Tappa* corrente = percorso->tappe;
         while (corrente->next != NULL) corrente = corrente->next;
         corrente->next = nuovaTappa;
+        nuovaTappa->prev=corrente;
     }
+    ultima = nuovaTappa; //changed
     percorso->n_tappe++;
     percorso->coeff_dist+=nuovaTappa->distanza;
 }
@@ -149,11 +163,11 @@ void deallocaTappa(Tappa** head) {
  * nuove strade da percorrere.
  * @param percorso struct del percorso temporaneo
  */
-int rimuoviUltimaTappa(Percorso* percorso) {
+unsigned int rimuoviUltimaTappa(Percorso* percorso) {
     percorso->n_tappe--;
     Tappa* tmp = percorso->tappe;
     while (tmp->next->next != NULL) tmp = tmp->next;
-    int dist=tmp->distanza;
+    unsigned int dist=tmp->distanza;
     tmp =tmp->next;
     percorso->coeff_dist-=tmp->distanza;
     free(tmp);
@@ -426,7 +440,7 @@ Percorso ricercaPercorsoIndietro(Stazione* start, Stazione* end){
     migliore.tappe = NULL;
 
     Stazione* actual = start;
-    int autonomia = start->head->autonomia;
+    unsigned int autonomia = start->head->autonomia;
 
     while (start->distanza-autonomia <= actual->distanza && actual->prev!=NULL){
         Percorso temp;
@@ -437,11 +451,15 @@ Percorso ricercaPercorsoIndietro(Stazione* start, Stazione* end){
         if (actual != NULL && actual->prev != NULL && actual->head!=NULL && actual->head->autonomia>0 && (actual->head->autonomia>=actual->distanza - actual->prev->distanza || actual->distanza==end->distanza)) {
             Stazione* new_st = actual->prev;
             Stazione* old_st = actual;
-            if(temp.tappe != NULL) deallocaTappa(&temp.tappe);
-            aggiungiTappa(&temp, start->distanza);
-            aggiungiTappa(&temp, old_st->distanza);
+            if(temp.tappe != NULL) {
+                temp.n_tappe=0;
+                temp.coeff_dist=0;
+                deallocaTappa(&temp.tappe);
+            }
+            aggiungiTappa(&temp, start);
+            aggiungiTappa(&temp, old_st);
 
-            int tmp_auto = old_st->head->autonomia;
+            int tmp_auto = (int) old_st->head->autonomia;
 
             while (new_st != NULL && new_st->distanza >= end->distanza && tmp_auto >= new_st->next->distanza - new_st->distanza) {
 
@@ -458,10 +476,10 @@ Percorso ricercaPercorsoIndietro(Stazione* start, Stazione* end){
                 }
 
                 if (tmp_auto >= 0 && (new_st == end || (new_st->head!=NULL && new_st->distanza - new_st->head->autonomia <= end->distanza))) {
-                    aggiungiTappa(&temp, new_st->distanza);
+                    aggiungiTappa(&temp, new_st);
 
                     if (new_st->distanza != end->distanza)
-                        aggiungiTappa(&temp, end->distanza);
+                        aggiungiTappa(&temp, end);
 
                     if (migliore.n_tappe > temp.n_tappe || (migliore.n_tappe==temp.n_tappe&&migliore.coeff_dist>temp.coeff_dist)) {
                         deallocaTappa(&migliore.tappe);
@@ -472,13 +490,13 @@ Percorso ricercaPercorsoIndietro(Stazione* start, Stazione* end){
                 }
                 if (tmp_auto <= 0 || new_st->distanza - new_st->prev->distanza > tmp_auto) {
                     if (new_st->prev != NULL && old_st->head->autonomia <= new_st->prev->distanza - old_st->distanza) {
-                        aggiungiTappa(&temp, new_st->distanza);
+                        aggiungiTappa(&temp, new_st);
                         tmp_auto = new_st->head->autonomia;
                         old_st = new_st;
                     } else {
                         new_st=old_st;
                         old_st = old_st->next;
-                        int tail = rimuoviUltimaTappa(&temp);
+                        unsigned int tail = rimuoviUltimaTappa(&temp);
 
                         while(old_st->head->autonomia<old_st->distanza-old_st->prev->distanza){
                             old_st=old_st->next;
@@ -487,7 +505,7 @@ Percorso ricercaPercorsoIndietro(Stazione* start, Stazione* end){
                         }
 
                         if(old_st!=NULL && actual!=NULL && old_st->distanza<actual->distanza)break;
-                        aggiungiTappa(&temp, old_st->distanza);
+                        aggiungiTappa(&temp, old_st);
                         tmp_auto=old_st->next->head->autonomia;
                     }
                 }
@@ -497,6 +515,19 @@ Percorso ricercaPercorsoIndietro(Stazione* start, Stazione* end){
         actual=actual->prev;
     }
     if(migliore.n_tappe<3||migliore.n_tappe==10000)migliore.n_tappe=DELETED;
+    else{
+        for (Tappa* tmp = ultima->prev; tmp != migliore.tappe->next; tmp = tmp->prev){
+            Stazione* s = tmp->prev->ref;
+            while(s->distanza<tmp->prev->prev->distanza){
+                if(s->head!=NULL && s->distanza>tmp->prev->distanza && s->distanza+s->head->autonomia <= tmp->distanza){
+                    tmp->prev->distanza=s->distanza;
+                    tmp->prev->ref=s;
+                }
+                if(s->prev->distanza==migliore.tappe->next->distanza)break;
+                s=s->next;
+            }
+        }
+    }
     return migliore;
 }
 
@@ -526,9 +557,13 @@ Percorso ricercaPercorsoInAvanti(Stazione* start, Stazione* end) {
                                             actual->distanza == end->distanza)) {
             Stazione *new_st = actual->next;
             Stazione *old_st = actual;
-            if(temp.tappe != NULL) deallocaTappa(&temp.tappe);
-            aggiungiTappa(&temp, start->distanza);
-            aggiungiTappa(&temp, old_st->distanza);
+            if(temp.tappe != NULL) {
+                temp.n_tappe=0;
+                temp.coeff_dist=0;
+                deallocaTappa(&temp.tappe);
+            }
+            aggiungiTappa(&temp, start);
+            aggiungiTappa(&temp, old_st);
 
             int tmp_auto = old_st->head->autonomia;
 
@@ -546,10 +581,10 @@ Percorso ricercaPercorsoInAvanti(Stazione* start, Stazione* end) {
                 }
 
                 if (tmp_auto >= 0 && (new_st == end || new_st->head->autonomia + new_st->distanza >= end->distanza)) {
-                    aggiungiTappa(&temp, new_st->distanza);
+                    aggiungiTappa(&temp, new_st);
 
                     if (new_st->distanza != end->distanza)
-                        aggiungiTappa(&temp, end->distanza);
+                        aggiungiTappa(&temp, end);
 
                     if (migliore.n_tappe > temp.n_tappe ||
                         (migliore.n_tappe == temp.n_tappe && migliore.coeff_dist > temp.coeff_dist)) {
@@ -561,21 +596,21 @@ Percorso ricercaPercorsoInAvanti(Stazione* start, Stazione* end) {
 
                 if (tmp_auto <= 0 || new_st->next->distanza - new_st->distanza > tmp_auto) {
                     if (new_st->next != NULL && old_st->head->autonomia <= new_st->next->distanza - old_st->distanza) {
-                        aggiungiTappa(&temp, new_st->distanza);
+                        aggiungiTappa(&temp, new_st);
                         tmp_auto = new_st->head->autonomia;
                         old_st = new_st;
 
                     } else {
                         new_st = old_st;
                         old_st = old_st->prev;
-                        int tail = rimuoviUltimaTappa(&temp);
+                        unsigned int tail = rimuoviUltimaTappa(&temp);
 
                         while (old_st->head->autonomia < old_st->next->distanza - old_st->distanza) {
                             old_st = old_st->prev;
                             new_st = new_st->prev;
                             if (old_st->distanza == tail)tail = rimuoviUltimaTappa(&temp);
                         }
-                        aggiungiTappa(&temp, old_st->distanza);
+                        aggiungiTappa(&temp, old_st);
                         tmp_auto = old_st->prev->head->autonomia;
 
                         if (old_st != NULL && actual != NULL && old_st->distanza < actual->distanza)break;
@@ -587,6 +622,19 @@ Percorso ricercaPercorsoInAvanti(Stazione* start, Stazione* end) {
         actual = actual->next;
     }
     if(migliore.n_tappe<3||migliore.n_tappe==10000)migliore.n_tappe=DELETED;
+    else{
+        for (Tappa* tmp = ultima->prev; tmp != migliore.tappe->next; tmp = tmp->prev){
+            Stazione* s = tmp->prev->ref;
+            while(s->distanza>tmp->prev->prev->distanza){
+                if(s->head!=NULL && s->distanza<tmp->prev->distanza && s->distanza+s->head->autonomia >= tmp->distanza){
+                    tmp->prev->distanza=s->distanza;
+                    tmp->prev->ref=s;
+                }
+                if(s->prev->distanza==migliore.tappe->next->distanza)break;
+                s=s->prev;
+            }
+        }
+    }
     return migliore;
 }
 
