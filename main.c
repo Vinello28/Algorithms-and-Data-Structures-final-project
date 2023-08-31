@@ -47,8 +47,6 @@ typedef struct Percorso{
     Tappa* tappe;
 }Percorso;
 
-Tappa* ultima=NULL; //usata per tenere traccia dell'ultima tappa inserita
-
 
 /**
  * Aggiunge una tappa al percorso temporaneo
@@ -71,7 +69,6 @@ void aggiungiTappa(Percorso* percorso, Stazione* st) {
         corrente->next = nuovaTappa;
         nuovaTappa->prev=corrente;
     }
-    ultima = nuovaTappa; //changed
     percorso->n_tappe++;
     percorso->coeff_dist+=nuovaTappa->distanza;
 }
@@ -421,7 +418,7 @@ void stampaPercorso(Tappa* percorso) {
         printf("%d ", percorso->distanza);
         percorso = percorso->next;
     }
-    printf("\n");
+    if(printf("\n")>0)NULL;
     deallocaTappa(&percorso);
 }
 
@@ -451,6 +448,8 @@ Percorso ricercaPercorsoIndietro(Stazione* start, Stazione* end){
         if (actual != NULL && actual->prev != NULL && actual->head!=NULL && actual->head->autonomia>0 && (actual->head->autonomia>=actual->distanza - actual->prev->distanza || actual->distanza==end->distanza)) {
             Stazione* new_st = actual->prev;
             Stazione* old_st = actual;
+
+
             if(temp.tappe != NULL) {
                 temp.n_tappe=0;
                 temp.coeff_dist=0;
@@ -459,7 +458,7 @@ Percorso ricercaPercorsoIndietro(Stazione* start, Stazione* end){
             aggiungiTappa(&temp, start);
             aggiungiTappa(&temp, old_st);
 
-            int tmp_auto = (int) old_st->head->autonomia;
+            int tmp_auto = old_st->head->autonomia;
 
             while (new_st != NULL && new_st->distanza >= end->distanza && tmp_auto >= new_st->next->distanza - new_st->distanza) {
 
@@ -515,34 +514,49 @@ Percorso ricercaPercorsoIndietro(Stazione* start, Stazione* end){
         actual=actual->prev;
     }
     if(migliore.n_tappe<3||migliore.n_tappe==10000)migliore.n_tappe=DELETED;
-    else{
+    else if(migliore.n_tappe>4){
         Tappa* tmp = migliore.tappe;
-        while(tmp->next!=NULL)tmp =tmp->next;
-        while(tmp->distanza != migliore.tappe->distanza){
-            Stazione* s = NULL;
-            if(tmp->prev==NULL)break;
-            else s = tmp->prev->ref->prev;
-            while(s!=NULL && tmp->prev->prev!=NULL && s->distanza>tmp->distanza){
-                if(s->head!=NULL && tmp->prev->prev->distanza-tmp->prev->prev->ref->head->autonomia <= s->distanza && s->distanza-s->head->autonomia<=tmp->distanza){
-                    tmp->prev->distanza=s->distanza;
-                    tmp->prev->ref=s;
+        while(tmp->next->next !=NULL){
+            Stazione* z = tmp->ref;
+            int aut = z->head->autonomia;
+            if(tmp->distanza-aut < tmp->next->distanza){
+                while(z->distanza>=tmp->distanza-aut){
+                    if(z->distanza-z->head->autonomia<=tmp->next->next->distanza){
+                        tmp->next->distanza=z->distanza;
+                        tmp->next->ref=z;
+                    }
+                    z=z->prev;
                 }
-                else if(s!=NULL && tmp->prev->prev!=NULL && tmp->prev->prev->distanza<migliore.tappe->distanza && s->distanza-s->head->autonomia<=tmp->distanza){
-                    Stazione* p = tmp->prev->prev->ref;
-                    while(p->distanza<tmp->prev->prev->prev->distanza){
-                        if(p->distanza-p->head->autonomia <= s->distanza){
-                            tmp->prev->prev->ref=p;
-                            tmp->prev->prev->distanza=p->distanza;
-                            tmp->prev->ref=s;
-                            tmp->prev->distanza=s->distanza;
-                            break;
+            }
+            tmp=tmp->next;
+        }
+
+        while(tmp->prev->prev->distanza != migliore.tappe->next->distanza){
+            Stazione* s=tmp->ref->next;
+
+            while(s->distanza<tmp->prev->distanza){
+                if(s->head!=NULL && s->distanza-s->head->autonomia<=tmp->distanza){
+                    if(tmp->prev->prev->distanza-tmp->prev->prev->ref->head->autonomia <= s->distanza){
+                        tmp->prev->distanza=s->distanza;
+                        tmp->prev->ref=s;
+                    }
+                    if(tmp->prev->prev->distanza-tmp->prev->prev->ref->head->autonomia > s->distanza){
+                        Stazione* p = tmp->prev->prev->ref->next;
+                        while(p->distanza<tmp->prev->prev->prev->distanza){
+                            if(p->head!=NULL && p->distanza-p->head->autonomia<= s->distanza){
+                                tmp->prev->prev->distanza=p->distanza;
+                                tmp->prev->prev->ref=p;
+                                tmp->prev->distanza=s->distanza;
+                                tmp->prev->ref=s;
+                                break;
+                            }
+                            p=p->next;
                         }
-                        p=p->next;
                     }
                 }
-                s=s->prev;
+                s=s->next;
             }
-            tmp = tmp->prev;
+            tmp=tmp->prev;
         }
     }
     return migliore;
@@ -746,6 +760,5 @@ int main() {
         }
     }
     deallocaStazioni(&head);
-
     return 0;
 }
