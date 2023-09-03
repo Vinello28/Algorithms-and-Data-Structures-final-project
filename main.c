@@ -429,31 +429,13 @@ void stampaPercorso(Tappa* percorso) {
 void aggiustaPercorsoDesc(Percorso* attuale){
     if(attuale->n_tappe>=4){
         Tappa* tmp = attuale->tappe;
-        Tappa* k = attuale->tappe;
-        if(k->distanza==tmp->next->distanza){
-            tmp = tmp->next;
-            attuale->tappe=attuale->tappe->next;
-            attuale->tappe->prev=NULL;
-            free(k);
-            attuale->n_tappe--;
-        }
-        while(tmp->next->next !=NULL){
-            Stazione* z = tmp->ref;
-            int aut = z->head->autonomia;
-            if(tmp->distanza-aut < tmp->next->distanza){
-                while(z->head!=NULL&&z->distanza>=tmp->distanza-aut){
-                    if(z->distanza-z->head->autonomia<=tmp->next->next->distanza){
-                        tmp->next->distanza=z->distanza;
-                        tmp->next->ref=z;
-                    }
-                    z=z->prev;
-                }
-            }
-            tmp=tmp->next;
-        }
-        tmp=tmp->next;
+
+        while(tmp->next!=NULL)tmp = tmp->next;
 
         Tappa* ultima=tmp;
+        Tappa* again=tmp;
+        Tappa* hihi = tmp;
+
         while(ultima->prev->prev->prev!=NULL) {
             Stazione *st = ultima->prev->prev->ref->next;
             while (st->distanza < ultima->prev->prev->prev->distanza && st->distanza - st->head->autonomia >=
@@ -466,7 +448,6 @@ void aggiustaPercorsoDesc(Percorso* attuale){
             ultima=ultima->prev;
         }
         //sotto il vecchio codice
-        /*
         while(tmp->prev->prev->distanza < attuale->tappe->distanza){
             Stazione* s=tmp->ref->next;
 
@@ -477,7 +458,7 @@ void aggiustaPercorsoDesc(Percorso* attuale){
                         tmp->prev->distanza=s->distanza;
                         tmp->prev->ref=s;
                     }
-                    //qua
+
                     if(tmp->prev->prev->distanza < attuale->tappe->distanza && tmp->prev->prev->distanza-tmp->prev->prev->ref->head->autonomia > s->distanza){
                         Stazione* p = NULL;
                         int op=tmp->prev->prev->prev->distanza-tmp->prev->prev->prev->ref->head->autonomia;
@@ -512,15 +493,15 @@ void aggiustaPercorsoDesc(Percorso* attuale){
                 s=s->next;
             }
             tmp=tmp->prev;
-        }*/
+        }
 
         //uso tmp che corrisponde ad ultima tappa
         //devo assicurarmi che tra le tappe precedenti alle attuali siano tutte a "gittata" maggiore
-        Tappa* lst_check=tmp;
-        Tappa* mid_check=tmp->prev;
+        Tappa* lst_check=hihi;
+        Tappa* mid_check=lst_check->prev;
         Tappa* fst_check= mid_check->prev;
 
-        while(fst_check->prev->prev!=NULL){
+        while(fst_check->prev!=NULL){
             Stazione* mario = lst_check->ref->next;
             Stazione* luigi = fst_check->ref;
 
@@ -529,7 +510,8 @@ void aggiustaPercorsoDesc(Percorso* attuale){
                 if(luigi->distanza-luigi->head->autonomia<=mario->distanza && mario->distanza-mario->head->autonomia <= lst_check->distanza){
                     mid_check->distanza=mario->distanza;
                     mid_check->ref=mario;
-                }else{
+
+                }else if(fst_check->prev!=NULL){
                     luigi=luigi->next;
                     while(luigi->distanza<fst_check->prev->distanza){
                         if(fst_check->prev->distanza-fst_check->prev->ref->head->autonomia<=luigi->distanza) {
@@ -551,6 +533,26 @@ void aggiustaPercorsoDesc(Percorso* attuale){
             mid_check=lst_check->prev;
             fst_check= mid_check->prev;
 
+        }
+
+        tmp = attuale->tappe;
+        while(tmp->next->next!=NULL){
+            for(Stazione* t = tmp->next->ref; t->distanza>tmp->distanza-tmp->ref->head->autonomia; t=t->prev){
+                if(t->head==NULL) continue;
+                if(t->distanza-tmp->next->next->distanza<=t->head->autonomia){
+                    tmp->next->distanza=t->distanza;
+                    tmp->next->ref=t;
+                }
+                if(t->prev==NULL)break;
+            }
+            tmp = tmp->next;
+        }
+
+        if(again->prev->prev->distanza-again->distanza<=again->prev->prev->ref->head->autonomia){
+            Tappa* judge_jury_executor = again->prev;
+            again->prev->prev->next=again;
+            again->prev=again->prev->prev;
+            free(judge_jury_executor);
         }
 
         attuale->coeff_dist=0;
