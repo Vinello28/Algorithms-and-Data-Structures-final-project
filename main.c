@@ -570,8 +570,7 @@ Percorso ricercaPercorsoIndietro(Stazione* start, Stazione* end){
                     }
                     break;
                 }
-            } else if (nuova->next == NULL)break;
-
+            }else if (nuova->next == NULL && nuova->distanza!=start->distanza)break;
 
             if (attuale.n_tappe > migliore.n_tappe)break; //condizioni di uscita
 
@@ -611,16 +610,18 @@ Percorso ricercaPercorsoIndietro(Stazione* start, Stazione* end){
 
             if(exitstat==BLACKBLOCK)break;
 
-            if (nuova->next->head == NULL && nuova->next->distanza!=start->distanza) {
-                nuova=nuova->next;
-                while (nuova->head == NULL)nuova = nuova->next;
-            }
-            else nuova = nuova->next;
+            if(nuova->next!=NULL){
+                if (nuova->next->head == NULL && nuova->next->distanza != start->distanza) {
+                    nuova = nuova->next;
+                    while (nuova->head == NULL)nuova = nuova->next;
+                } else nuova = nuova->next;
+            }else break;
         }
 
-        //if (observed->prev != NULL && observed->prev->head == NULL)
-            while (observed->prev != NULL && observed->prev->head == NULL && observed->prev->distanza < end->distanza)
-                observed = observed->prev;
+
+        while (observed->prev != NULL && observed->prev->head == NULL && observed->prev->distanza < end->distanza) {
+            observed = observed->prev;
+        }
         if (observed->prev != NULL && observed->prev->distanza)observed = observed->prev;
         else break;
     }
@@ -779,6 +780,14 @@ Percorso ricercaPercorsoInAvanti(Stazione* start, Stazione* end) {
                 s=s->prev;
             }
             tmp = tmp->prev;
+        }
+
+        Tappa* z = migliore.tappe;
+        if(z->next->next->distanza - z->distanza <= z->ref->head->autonomia){
+            z=z->next;
+            z->next->prev=migliore.tappe;
+            migliore.tappe->next=z->next;
+            free(z);
         }
     }
     return migliore;
