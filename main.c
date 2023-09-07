@@ -108,16 +108,15 @@ void aggiungiTappaInTesta(Percorso* percorso, Stazione* st) {
  * @param percorso puntatore al percorso temporaneo
  */
 void eliminaUltimaTappa(Percorso* percorso) {
-    if (percorso->tappe == NULL) return; // La lista delle tappe è vuota, non c'è nulla da eliminare.
+    if (percorso->tappe == NULL) return;
 
     Tappa* judge_jury_executor = percorso->tappe; //tappa da eliminare
 
     if (judge_jury_executor->next != NULL) {
-        // Se ci sono altre tappe oltre a quella da eliminare.
         percorso->tappe = judge_jury_executor->next;
         percorso->tappe->prev = NULL;
 
-    } else percorso->tappe = NULL; //Altrimenti, la lista delle tappe diventa vuota.
+    } else percorso->tappe = NULL; //altrimenti la lista delle tappe diventa vuota
 
     percorso->n_tappe--;
     percorso->coeff_dist -= judge_jury_executor->distanza;
@@ -346,18 +345,18 @@ void rottamaAuto(Stazione** testa, unsigned int dist, unsigned int a){
  * @param v_a  puntatore al vettore delle automobili
  */
 void aggiungiStazione(Stazione** testa, unsigned int distanza, unsigned int numeroAuto, unsigned int* autonomie) {
+
+    if(numeroAuto>MAX_AUTO){
+        if(printf("non aggiunta\n")<0)return;
+        return;
+    }
+
     Stazione* n_st = malloc(sizeof(Stazione));
     n_st->distanza = distanza;
     n_st->num_auto = numeroAuto;
     n_st->head = NULL;
     n_st->prev = NULL;
     n_st->next = NULL;
-
-    if(numeroAuto>MAX_AUTO){
-        free(n_st);
-        if(printf("non aggiunta\n")<0)return;
-        return;
-    }
 
     //Aggiunta auto
     for (int i = 0; i < numeroAuto; i++) {
@@ -556,9 +555,6 @@ Percorso ricercaPercorsoIndietro(Stazione* start, Stazione* end){
                         pt2 = pt1;
 
                     } else {
-                        //Tappa *it1 = migliore.tappe;
-
-                        //while (it1->next != NULL) it1 = it1->next;
 
                         while (pt2->prev != NULL && pt2->distanza == pt1->distanza) {
                             pt2 = pt2->prev;
