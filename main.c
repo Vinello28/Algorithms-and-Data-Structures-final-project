@@ -1,5 +1,8 @@
 /**
  * Progetto di algoritmi e strutture dati
+ * Vianello Gabriele
+ * Cod.Persona 10704549
+ *
  */
 #include <stdio.h>
 #include <stdlib.h>
@@ -7,7 +10,7 @@
 
 #define MAX_AUTO 512
 #define DELETED 1918
-#define BLACKBLOCK 800813
+#define BLOCK 8098813
 
 /**
  * Auto rappresentate dalla seguente struttura dati
@@ -74,7 +77,6 @@ void aggiungiTappa(Percorso* percorso, Stazione* st) {
     percorso->coeff_dist+=nuovaTappa->distanza;
 }
 
-
 /**
  * Aggiunge una tappa al percorso temporaneo in testa alla lista delle tappe
  * @param percorso puntatore al percorso temporaneo
@@ -102,7 +104,6 @@ void aggiungiTappaInTesta(Percorso* percorso, Stazione* st) {
     }
 }
 
-
 /**
  * Elimina l'ultima tappa inserita (quella in testa) dal percorso temporaneo
  * @param percorso puntatore al percorso temporaneo
@@ -123,8 +124,6 @@ void eliminaUltimaTappa(Percorso* percorso) {
 
     free(judge_jury_executor); //effettiva eliminazione della tappa
 }
-
-
 
 /**
  * Funzione di inserimento che mantiene la lista ordinata per autonomia decrescente
@@ -536,26 +535,21 @@ Percorso ricercaPercorsoIndietro(Stazione* start, Stazione* end){
                 nuova->distanza - tmp->distanza <= nuova->head->autonomia)
                 || (tmp == NULL && nuova->distanza==start->distanza && start->distanza-vecchia->distanza<=nuova->head->autonomia)) {
 
-
                 if (tmp!=NULL && tmp->distanza != nuova->distanza) {
                     aggiungiTappaInTesta(&attuale, tmp);
                     aggiungiTappaInTesta(&attuale, nuova);
                 } else aggiungiTappaInTesta(&attuale, start);
 
                 if (attuale.n_tappe <= migliore.n_tappe) { //sequenza finale scelta percorso
-
-                    exitstat=BLACKBLOCK;
+                    exitstat=BLOCK;
 
                     if (attuale.n_tappe < migliore.n_tappe) {
-
                         deallocaTappa(&migliore.tappe);
                         migliore.tappe = attuale.tappe;
                         migliore.n_tappe = attuale.n_tappe;
                         migliore.coeff_dist = attuale.coeff_dist;
                         pt2 = pt1;
-
                     } else {
-
                         while (pt2->prev != NULL && pt2->distanza == pt1->distanza) {
                             pt2 = pt2->prev;
                             pt1 = pt1->prev;
@@ -572,22 +566,18 @@ Percorso ricercaPercorsoIndietro(Stazione* start, Stazione* end){
                 }
             }else if (nuova->next == NULL && nuova->distanza!=start->distanza)break;
 
-            if (attuale.n_tappe > migliore.n_tappe)break; //condizioni di uscita
+            if (attuale.n_tappe >= migliore.n_tappe)break; //condizioni di uscita
 
             if (tmp != NULL && nuova->distanza==start->distanza && tmp->distanza != vecchia->distanza
             && start->head->autonomia<start->distanza-vecchia->distanza) {
-
                 aggiungiTappaInTesta(&attuale, tmp);
                 vecchia = tmp;
                 nuova = tmp;
-
             } else if(nuova->distanza==start->distanza && tmp == NULL){   //parte di codice deputata alla ricerca di nuove vie una volta che l'attuale non è più percorribile
                 eliminaUltimaTappa(&attuale);   //elimina l'ultima tappa inserita
 
-                Tappa *x = attuale.tappe;   //nuova tappa di riferimento
-
-                if (x == NULL)break;
-
+                if (attuale.tappe == NULL)break;
+                Tappa* x = attuale.tappe;   //nuova tappa di riferimento
                 tmp = vecchia;
 
                 while (tmp->head == NULL || tmp->head->autonomia < tmp->distanza - x->distanza) {
@@ -601,23 +591,20 @@ Percorso ricercaPercorsoIndietro(Stazione* start, Stazione* end){
                         vecchia = x->ref;
                     } else break;
 
-                    if(x->distanza==observed->distanza)exitstat=BLACKBLOCK;
+                    if(x->distanza==observed->distanza)exitstat=BLOCK;
 
                     tmp = tmp->prev;
                 }
-                if (x->distanza == observed->distanza||exitstat==BLACKBLOCK)break;
+                if (exitstat == BLOCK)break;
             }
 
-            if(exitstat==BLACKBLOCK)break;
-
-            if(nuova->next!=NULL){
+            if(nuova->next!=NULL && exitstat != BLOCK){
                 if (nuova->next->head == NULL && nuova->next->distanza != start->distanza) {
                     nuova = nuova->next;
                     while (nuova->head == NULL)nuova = nuova->next;
                 } else nuova = nuova->next;
             }else break;
         }
-
 
         while (observed->prev != NULL && observed->prev->head == NULL && observed->prev->distanza < end->distanza) {
             observed = observed->prev;
@@ -839,7 +826,7 @@ int main() {
                     }
                     aggiungiStazione(&head, dist, n_a, a);
 
-                    for(int x =0; x<20; x++)input[x]=0;
+                    //for(int x =0; x<20; x++)input[x]=0;
 
                 }
             } else if (strcmp(input, "aggiungi-auto") == 0) {
@@ -847,28 +834,28 @@ int main() {
                 if (scanf("%d %d", &dist, &a) != EOF) {
                     aggiungiAuto(&head, dist, a);
                 }
-                for(int x =0; x<20; x++)input[x]=0;
+                //for(int x =0; x<20; x++)input[x]=0;
 
             } else if (strcmp(input, "rottama-auto") == 0) {
                 unsigned int dist, a;
                 if (scanf("%d %d", &dist, &a) != EOF) {
                     rottamaAuto(&head, dist, a);
                 }
-                for(int x =0; x<20; x++)input[x]=0;
+                //for(int x =0; x<20; x++)input[x]=0;
 
             } else if (strcmp(input, "demolisci-stazione") == 0) {
                 unsigned int dist;
                 if (scanf("%d", &dist) != EOF) {
                     demolisciStazione(&head, dist);
                 }
-                for(int x =0; x<20; x++)input[x]=0;
+                //for(int x =0; x<20; x++)input[x]=0;
 
             } else if (strcmp(input, "pianifica-percorso") == 0) {
                 unsigned int start, end;
                 if (scanf("%d %d", &start, &end) != EOF) {
                     pianificaPercorso(&head, start, end);
                 }
-                for(int x =0; x<20; x++)input[x]=0;
+                //for(int x =0; x<20; x++)input[x]=0;
             }
         } else {
             input[indice++] = c;
