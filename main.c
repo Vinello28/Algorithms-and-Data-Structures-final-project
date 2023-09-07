@@ -504,6 +504,8 @@ Percorso ricercaPercorsoIndietro(Stazione* start, Stazione* end){
         return migliore;                   //delega stampa "nessun percorso" a funzione predisposta
     }
 
+    Tappa* pt2=NULL;
+
     while (observed->distanza > end->distanza){
 
         //nuovo percorso temporaneo, ogni nuova tappa di partenza corrisponde ad almeno un nuovo possibile percorso
@@ -513,6 +515,7 @@ Percorso ricercaPercorsoIndietro(Stazione* start, Stazione* end){
         attuale.tappe=NULL;
 
         aggiungiTappaInTesta(&attuale, end);
+        Tappa* pt1=attuale.tappe;
         aggiungiTappaInTesta(&attuale, observed);
 
         if(attuale.tappe==NULL)return migliore;
@@ -550,22 +553,23 @@ Percorso ricercaPercorsoIndietro(Stazione* start, Stazione* end){
                         migliore.tappe = attuale.tappe;
                         migliore.n_tappe = attuale.n_tappe;
                         migliore.coeff_dist = attuale.coeff_dist;
+                        pt2 = pt1;
+
                     } else {
-                        Tappa *it1 = migliore.tappe;
-                        Tappa *it2 = attuale.tappe;
-                        while (it1->next != NULL) {
-                            it1 = it1->next;
-                            it2 = it2->next;
+                        //Tappa *it1 = migliore.tappe;
+
+                        //while (it1->next != NULL) it1 = it1->next;
+
+                        while (pt2->prev != NULL && pt2->distanza == pt1->distanza) {
+                            pt2 = pt2->prev;
+                            pt1 = pt1->prev;
                         }
-                        while (it1->prev != NULL && it1->distanza == it2->distanza) {
-                            it1 = it1->prev;
-                            it2 = it2->prev;
-                        }
-                        if (it2->distanza < it1->distanza) {
+                        if (pt1->distanza < pt2->distanza) {
                             deallocaTappa(&migliore.tappe);
                             migliore.tappe = attuale.tappe;
                             migliore.n_tappe = attuale.n_tappe;
                             migliore.coeff_dist = attuale.coeff_dist;
+                            pt2 = pt1;
                         }
                     }
                     break;
@@ -681,9 +685,8 @@ Percorso ricercaPercorsoInAvanti(Stazione* start, Stazione* end) {
     migliore.tappe = NULL;
 
     Stazione *actual = start;
-    int autonomia = start->head->autonomia;
 
-    while (start->distanza + autonomia >= actual->distanza&&actual->next!=NULL) {
+    while (start->distanza + start->head->autonomia >= actual->distanza&&actual->next!=NULL) {
         Percorso temp;
         temp.n_tappe = 0;
         temp.coeff_dist = 0;
@@ -693,11 +696,7 @@ Percorso ricercaPercorsoInAvanti(Stazione* start, Stazione* end) {
                                             actual->distanza == end->distanza)) {
             Stazione *new_st = actual->next;
             Stazione *old_st = actual;
-            if(temp.tappe != NULL) {
-                temp.n_tappe=0;
-                temp.coeff_dist=0;
-                deallocaTappa(&temp.tappe);
-            }
+
             aggiungiTappa(&temp, start);
             aggiungiTappa(&temp, old_st);
 
