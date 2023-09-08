@@ -12,6 +12,8 @@
 #define DELETED 1918
 #define BLOCK 8098813
 
+int not_interesting=0;
+
 /**
  * Auto rappresentate dalla seguente struttura dati
  */
@@ -233,7 +235,7 @@ unsigned int rimuoviUltimaTappa(Percorso* percorso) {
  */
 void aggiungiAuto(Stazione** testa, unsigned int dist, unsigned int autonomia){
     if(*testa == NULL) {
-        if(printf("non aggiunta\n")>0)return;
+        not_interesting=printf("non aggiunta\n");
         return;
     }
 
@@ -244,10 +246,10 @@ void aggiungiAuto(Stazione** testa, unsigned int dist, unsigned int autonomia){
             if(st->num_auto<MAX_AUTO){
                 st->num_auto++;
                 aggiungiAutoByDesc(&st->head, autonomia);
-                if(printf("aggiunta\n")<0)return;
+                not_interesting=printf("aggiunta\n");
                 return;
             } else {
-                if(printf("non aggiunta\n")<0)return;
+                not_interesting=printf("non aggiunta\n");
                 return;
             }
         }
@@ -256,20 +258,20 @@ void aggiungiAuto(Stazione** testa, unsigned int dist, unsigned int autonomia){
                 if(st->num_auto<MAX_AUTO){
                     st->num_auto++;
                     aggiungiAutoByDesc(&st->head, autonomia);
-                    if(printf("aggiunta\n")<0)return;
+                    not_interesting=printf("aggiunta\n");
                     return;
                 } else {
-                    if(printf("non aggiunta\n")<0)return;
+                    not_interesting=printf("non aggiunta\n");
                     return;
                 }
             }
             else st = st->next;
         }
     } else if(st==NULL){
-        if(printf("non aggiunta\n")<0)return;
+        not_interesting=printf("non aggiunta\n");
         return;
     }
-    if(printf("non aggiunta\n")<0)return;
+    not_interesting=printf("non aggiunta\n");
 }
 
 
@@ -281,7 +283,7 @@ void aggiungiAuto(Stazione** testa, unsigned int dist, unsigned int autonomia){
  */
 void rottamaAuto(Stazione** testa, unsigned int dist, unsigned int a){
     if(*testa == NULL) {
-        if(printf("non rottamata\n")>0)return;
+        not_interesting=printf("non rottamata\n");
         return;
     }
 
@@ -303,10 +305,10 @@ void rottamaAuto(Stazione** testa, unsigned int dist, unsigned int a){
                     else prev->next = tmp->next;
                     free(tmp);
                     st->num_auto--;
-                    if(printf("rottamata\n")<0)return;
+                    not_interesting=printf("rottamata\n");
                     return;
                 } else {
-                    if(printf("non rottamata\n")<0)return;
+                    not_interesting=printf("non rottamata\n");
                     return;
                 }
             } else st = st->next;
@@ -325,14 +327,14 @@ void rottamaAuto(Stazione** testa, unsigned int dist, unsigned int a){
             else prev->next = tmp->next;
             free(tmp);
             st->num_auto--;
-            if(printf("rottamata\n")<0)return;
+            not_interesting=printf("rottamata\n");
             return;
         } else {
-            if(printf("non rottamata\n")<0)return;
+            not_interesting=printf("non rottamata\n");
             return;
         }
     }
-    if(printf("non rottamata\n")<0)return;
+    not_interesting=printf("non rottamata\n");
 }
 
 
@@ -346,7 +348,7 @@ void rottamaAuto(Stazione** testa, unsigned int dist, unsigned int a){
 void aggiungiStazione(Stazione** testa, unsigned int distanza, unsigned int numeroAuto, unsigned int* autonomie) {
 
     if(numeroAuto>MAX_AUTO){
-        if(printf("non aggiunta\n")<0)return;
+        not_interesting=printf("non aggiunta\n");
         return;
     }
 
@@ -368,20 +370,20 @@ void aggiungiStazione(Stazione** testa, unsigned int distanza, unsigned int nume
     //inserimento stazione in ordine crescente
     if (*testa == NULL) {
         *testa = n_st;
-        if(printf("aggiunta\n")<0)return;
+        not_interesting=printf("aggiunta\n");
         return;
 
     } else if (distanza < (*testa)->distanza) {
         n_st->next = *testa;
         (*testa)->prev = n_st;
         *testa = n_st;
-        if(printf("aggiunta\n")<0)return;
+        not_interesting=printf("aggiunta\n");
         return;
     } else {
         Stazione* current = *testa;
         while (current != NULL) {
             if (current->distanza == distanza) {
-                if(printf("non aggiunta\n")<0)return;
+                not_interesting=printf("non aggiunta\n");
                 return;
             }
             if (current->next != NULL && current->next->distanza>distanza){ //inserimento tra due stazioni
@@ -389,14 +391,14 @@ void aggiungiStazione(Stazione** testa, unsigned int distanza, unsigned int nume
                 n_st->next=current->next;
                 n_st->prev=current;
                 current->next=n_st;
-                if(printf("aggiunta\n")<0)return;
+                not_interesting=printf("aggiunta\n");
                 return;
             }
             if(current->next==NULL && current->distanza<distanza){
                 n_st->prev=current;
                 current->next=n_st;
                 n_st->next=NULL;
-                if(printf("aggiunta\n")<0)return;
+                not_interesting=printf("aggiunta\n");
                 return;
             }
             current = current->next;
@@ -404,7 +406,7 @@ void aggiungiStazione(Stazione** testa, unsigned int distanza, unsigned int nume
         if(current->distanza == distanza){
             deallocaAuto(&n_st->head);
             free(n_st);
-            if(printf("non aggiunta\n")<0)return;
+            not_interesting=printf("non aggiunta\n");
             return;
         }
     }
@@ -419,7 +421,7 @@ void aggiungiStazione(Stazione** testa, unsigned int distanza, unsigned int nume
  */
 void demolisciStazione(Stazione** head, unsigned int dist){
     if (head==NULL) {
-        if(printf("non demolita\n")<0)return;
+        not_interesting=printf("non demolita\n");
         return;
     }
     Stazione* st = *head;
@@ -427,7 +429,7 @@ void demolisciStazione(Stazione** head, unsigned int dist){
     while (st != NULL && st->distanza != dist) st = st->next;
 
     if (st == NULL) {
-        if(printf("non demolita\n")<0)return;
+        not_interesting=printf("non demolita\n");
         return;
     }
     if (st == *head) *head = st->next;
@@ -436,7 +438,7 @@ void demolisciStazione(Stazione** head, unsigned int dist){
 
     deallocaAuto(&st->head);
     free(st);
-    if(printf("demolita\n")<0)return;
+    not_interesting=printf("demolita\n");
 }
 
 
@@ -470,7 +472,7 @@ void stampaPercorso(Tappa* percorso) {
         printf("%d ", percorso->distanza);
         percorso = percorso->next;
     }
-    if(printf("%d\n", percorso->distanza)>0)NULL;
+    not_interesting=printf("%d\n", percorso->distanza);
     deallocaTappa(&percorso);
 }
 
@@ -791,18 +793,21 @@ void pianificaPercorso(Stazione** head, unsigned int d_start, unsigned int d_end
     //controlla che le stazioni di partenza e arrivo siano valide
     if (stazionePartenza == NULL || stazioneArrivo == NULL || stazionePartenza->num_auto==0
         ||stazionePartenza->head==NULL || stazionePartenza->head->autonomia==0) {
-        if(printf("nessun percorso\n")<0) return;
+        not_interesting=printf("nessun percorso\n");
         return;
     }
     int var = d_end-d_start;
     if(var == 0){
-        if(printf("%d\n", d_start)<0) return;
+        not_interesting=printf("%d\n", d_start);
         return;
     }
     Percorso ottimale;
     if(var>0)ottimale = ricercaPercorsoInAvanti(stazionePartenza, stazioneArrivo);
     else ottimale = ricercaPercorsoIndietro(stazionePartenza, stazioneArrivo);
-    if(ottimale.n_tappe==DELETED)if(printf("nessun percorso\n")>0)return;
+    if(ottimale.n_tappe==DELETED){
+        not_interesting=printf("nessun percorso\n");
+        return;
+    }
     stampaPercorso(ottimale.tappe);
 }
 
@@ -812,50 +817,40 @@ int main() {
     char c;
     char input[20];
     int indice = 0;
-    while ((c = getchar()) != EOF) {
+    while ((c = getchar_unlocked()) != EOF) {
         if (c == '\n' || c == ' ') {
             input[indice] = '\0';
             indice = 0;
 
             if (strcmp(input, "aggiungi-stazione") == 0) {
                 unsigned int dist, n_a;
-                if (scanf("%d %d", &dist, &n_a) != EOF) {
-                    unsigned int a[512];
-                    for (int i = 0; i < n_a; i++) {
-                        if (scanf(" %d", &a[i]) != EOF) continue;
-                    }
-                    aggiungiStazione(&head, dist, n_a, a);
-
-                    //for(int x =0; x<20; x++)input[x]=0;
-
+                not_interesting=scanf("%d %d", &dist, &n_a);
+                unsigned int a[512];
+                for (int i = 0; i < n_a; i++) {
+                    not_interesting=scanf(" %d", &a[i]);
                 }
+                aggiungiStazione(&head, dist, n_a, a);
+
             } else if (strcmp(input, "aggiungi-auto") == 0) {
                 unsigned int dist, a;
-                if (scanf("%d %d", &dist, &a) != EOF) {
-                    aggiungiAuto(&head, dist, a);
-                }
-                //for(int x =0; x<20; x++)input[x]=0;
+                not_interesting=scanf("%d %d", &dist, &a);
+                aggiungiAuto(&head, dist, a);
 
             } else if (strcmp(input, "rottama-auto") == 0) {
                 unsigned int dist, a;
-                if (scanf("%d %d", &dist, &a) != EOF) {
-                    rottamaAuto(&head, dist, a);
-                }
-                //for(int x =0; x<20; x++)input[x]=0;
+                not_interesting=scanf("%d %d", &dist, &a);
+                rottamaAuto(&head, dist, a);
 
             } else if (strcmp(input, "demolisci-stazione") == 0) {
                 unsigned int dist;
-                if (scanf("%d", &dist) != EOF) {
-                    demolisciStazione(&head, dist);
-                }
-                //for(int x =0; x<20; x++)input[x]=0;
+                not_interesting=scanf("%d", &dist);
+                demolisciStazione(&head, dist);
 
             } else if (strcmp(input, "pianifica-percorso") == 0) {
                 unsigned int start, end;
-                if (scanf("%d %d", &start, &end) != EOF) {
-                    pianificaPercorso(&head, start, end);
-                }
-                //for(int x =0; x<20; x++)input[x]=0;
+                not_interesting=scanf("%d %d", &start, &end);
+                pianificaPercorso(&head, start, end);
+
             }
         } else {
             input[indice++] = c;
